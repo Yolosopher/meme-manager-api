@@ -11,6 +11,7 @@ import { LoginUserDto, CreateUserDto } from 'src/users/dto/user.dto';
 import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +22,7 @@ export class AuthController {
 
   @HttpCode(200)
   @Get()
+  @UseGuards(AdminGuard)
   async findAll(): Promise<User[]> {
     return await this.usersService.findAll();
   }
