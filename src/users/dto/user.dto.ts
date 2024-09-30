@@ -11,8 +11,6 @@ export class LoginUserDto {
   password: string;
 }
 
-export type AuthInput = LoginUserDto;
-
 export type SignInData = {
   id: number;
   email: string;

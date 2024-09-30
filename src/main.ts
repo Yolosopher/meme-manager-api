@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 // import { CloggerService } from './clogger/clogger.service';
 
 async function bootstrap() {
@@ -10,6 +11,13 @@ async function bootstrap() {
     // }
   );
   // app.useLogger(app.get(CloggerService));
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
   app.enableCors();
   app.setGlobalPrefix('api');
   await app.listen(3000);

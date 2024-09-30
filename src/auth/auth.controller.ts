@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthInput, CreateUserDto } from 'src/users/dto/user.dto';
+import { LoginUserDto, CreateUserDto } from 'src/users/dto/user.dto';
 import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { AuthGuard } from './guards/auth.guard';
@@ -35,7 +35,7 @@ export class AuthController {
 
   @HttpCode(200)
   @Post('login')
-  async login(@Body() input: AuthInput) {
+  async login(@Body() input: LoginUserDto) {
     return await this.authService.authenticate(input);
   }
 
