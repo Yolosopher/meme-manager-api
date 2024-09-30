@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from 'src/token/token.service';
 import { LoginUserDto, AuthResult, SignInData } from 'src/users/dto/user.dto';
 import { UsersService } from 'src/users/users.service';
 
@@ -8,12 +9,20 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private usersService: UsersService,
+    private tokenService: TokenService,
   ) {}
 
   public async authenticate(input: LoginUserDto): Promise<AuthResult> {
     const user = await this.validateUser(input);
 
-    return await this.signIn(user);
+    const authResult = await this.signIn(user);
+    await this.tokenService.saveToken(authResult.accessToken, user.id);
+    return authResult;
+  }
+
+  public async deleteToken(token: string): Promise<boolean> {
+    const deletedToken = await this.tokenService.deleteToken(token);
+    return !!deletedToken;
   }
 
   private async signIn(user: SignInData): Promise<AuthResult> {

@@ -8,6 +8,7 @@ import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
 import { CreateUserDto } from './dto/user.dto';
 import { ConfigService } from '@nestjs/config';
+import { TokenService } from 'src/token/token.service';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,7 @@ export class UsersService {
     private configService: ConfigService,
     private databaseService: DatabaseService,
     private hasherService: HasherService,
+    private tokenService: TokenService,
   ) {}
   async initAdmin() {
     console.log('Initializing admin user...');

@@ -7,6 +7,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { CloggerModule } from './clogger/clogger.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ConfigModule } from '@nestjs/config';
     DatabaseModule,
     CloggerModule,
     AuthModule,
+    TokenModule,
   ],
   controllers: [AppController],
   providers: [

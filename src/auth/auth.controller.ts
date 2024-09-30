@@ -28,8 +28,8 @@ export class AuthController {
   ) {}
 
   @HttpCode(HttpStatus.OK)
-  @Get()
   @UseGuards(AdminGuard)
+  @Get()
   async findAll(): Promise<Omit<User, 'password'>[]> {
     return await this.usersService.findAll();
   }
@@ -64,5 +64,13 @@ export class AuthController {
     const user = await this.usersService.remove(id);
     if (!user) return false;
     return true;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Get('logout')
+  async logout(@Req() request): Promise<boolean> {
+    const token = request.token;
+    return await this.authService.deleteToken(token);
   }
 }
