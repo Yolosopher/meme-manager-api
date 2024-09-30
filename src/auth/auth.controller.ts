@@ -3,13 +3,14 @@ import {
   Controller,
   Get,
   HttpCode,
-  NotImplementedException,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthInput, CreateUserDto } from 'src/users/dto/user.dto';
 import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -39,8 +40,9 @@ export class AuthController {
   }
 
   @HttpCode(200)
+  @UseGuards(AuthGuard)
   @Get('profile')
   async getUserInfo() {
-    throw new NotImplementedException();
+    return "I'm protected and you can see this!";
   }
 }

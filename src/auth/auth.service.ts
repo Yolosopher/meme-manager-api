@@ -15,21 +15,19 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  async register(input: CreateUserDto): Promise<boolean> {
-    const user = await this.usersService.create(input);
-    if (!user) return false;
-    return true;
-  }
-
-  async authenticate(input: AuthInput): Promise<AuthResult> {
+  public async authenticate(input: AuthInput): Promise<AuthResult> {
     const user = await this.validateUser(input);
 
+    return await this.signIn(user);
+  }
+
+  private async signIn(user: SignInData): Promise<AuthResult> {
     const accessToken = await this.jwtService.signAsync(user);
 
     return { ...user, accessToken };
   }
 
-  async validateUser(input: AuthInput): Promise<SignInData | null> {
+  private async validateUser(input: AuthInput): Promise<SignInData | null> {
     const user = await this.usersService.findUserByEmailAndPassword({
       email: input.email,
       password: input.password,
