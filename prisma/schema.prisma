@@ -21,6 +21,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   role      Role
+  tokens    Token[]
+}
+
+model Token {
+  id          Int     @id @default(autoincrement())
+  token       String
+  blacklisted Boolean @default(false)
+  userId      Int     @unique
+  User        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 enum Role {

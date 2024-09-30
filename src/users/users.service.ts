@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, Role, User } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
 import { CreateUserDto } from './dto/user.dto';
@@ -62,15 +62,26 @@ export class UsersService {
     });
   }
 
-  async findAll(role?: 'USER' | 'ADMIN') {
+  async findAll(role?: 'USER' | 'ADMIN'): Promise<Omit<User, 'password'>[]> {
+    const select = {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    };
     if (role) {
       return await this.databaseService.user.findMany({
         where: {
           role,
         },
+        select,
       });
     }
-    return await this.databaseService.user.findMany();
+    return await this.databaseService.user.findMany({
+      select,
+    });
   }
 
   async findUserByEmailAndPassword({
