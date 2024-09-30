@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from 'src/token/token.service';
 import { LoginUserDto, AuthResult, SignInData } from 'src/users/dto/user.dto';
@@ -43,5 +43,31 @@ export class AuthService {
       id: user.id,
       role: user.role,
     };
+  }
+
+  public async updateToken(token: string): Promise<AuthResult> {
+    const foundToken = await this.tokenService.findToken(token);
+    if (!foundToken) {
+      throw new NotFoundException('Token not found');
+    }
+    const user = await this.usersService.findOne(foundToken.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    console.log('till here..............................');
+
+    const authResult = await this.signIn({
+      email: user.email,
+      name: user.name,
+      id: user.id,
+      role: user.role,
+    });
+    await this.tokenService.saveToken(authResult.accessToken, authResult.id);
+
+    // delete old token
+    await this.tokenService.deleteToken(token);
+
+    return authResult;
   }
 }

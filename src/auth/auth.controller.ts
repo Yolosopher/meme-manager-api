@@ -5,7 +5,9 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -14,6 +16,7 @@ import {
   LoginUserDto,
   CreateUserDto,
   AuthResult,
+  UpdateNameDto,
 } from 'src/users/dto/user.dto';
 import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
@@ -32,6 +35,15 @@ export class AuthController {
   @Get()
   async findAll(): Promise<Omit<User, 'password'>[]> {
     return await this.usersService.findAll();
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  @Delete(':id')
+  async deleteUser(@Param('id') id: number): Promise<boolean> {
+    const user = await this.usersService.remove(id);
+    if (!user) return false;
+    return true;
   }
 
   @HttpCode(HttpStatus.CREATED)
@@ -59,7 +71,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Delete()
-  async deleteUser(@Req() request): Promise<boolean> {
+  async deleteSelf(@Req() request): Promise<boolean> {
     const id = request.user.id;
     const user = await this.usersService.remove(id);
     if (!user) return false;
@@ -72,5 +84,19 @@ export class AuthController {
   async logout(@Req() request): Promise<boolean> {
     const token = request.token;
     return await this.authService.deleteToken(token);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Put()
+  async update(
+    @Req() request,
+    @Body() input: UpdateNameDto,
+  ): Promise<AuthResult> {
+    const id = request.user.id;
+    const token = request.token;
+    await this.usersService.update(id, input);
+
+    return await this.authService.updateToken(token);
   }
 }

@@ -16,6 +16,11 @@ export class CreateUserDto {
   password: string;
 }
 
+export class UpdateNameDto {
+  @IsString()
+  name: string;
+}
+
 export class LoginUserDto {
   @IsEmail()
   email: string;
