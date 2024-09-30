@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CloggerModule } from './clogger/clogger.module';
+import { AuthModule } from './auth/auth.module';
+import { AuthController } from './auth/auth.controller';
 
 @Module({
   imports: [
@@ -24,8 +26,9 @@ import { CloggerModule } from './clogger/clogger.module';
     DatabaseModule,
     UsersModule,
     CloggerModule,
+    AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AuthController],
   providers: [
     AppService,
     {
