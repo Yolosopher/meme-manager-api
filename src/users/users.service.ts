@@ -7,13 +7,42 @@ import { Prisma, Role } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
 import { CreateUserDto } from './dto/user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
   constructor(
+    private configService: ConfigService,
     private databaseService: DatabaseService,
     private hasherService: HasherService,
   ) {}
+  async initAdmin() {
+    console.log('Initializing admin user...');
+    const admin = await this.databaseService.user.findFirst({
+      where: {
+        role: Role.ADMIN,
+      },
+    });
+
+    if (!admin) {
+      console.log('Admin user not found, creating one...');
+      await this.databaseService.user.create({
+        data: {
+          email: this.configService.get('ADMIN_EMAIL'),
+          password: await this.hasherService.hash(
+            this.configService.get('ADMIN_PASSWORD'),
+          ),
+          role: Role.ADMIN,
+          name: this.configService.get('ADMIN_NAME'),
+        },
+      });
+      console.log(
+        'Admin user created with email',
+        this.configService.get('ADMIN_EMAIL'),
+      );
+    }
+    console.log('Admin user already exists');
+  }
 
   async create(createUserDto: CreateUserDto) {
     // check if user already exists
