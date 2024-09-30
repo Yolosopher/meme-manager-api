@@ -1,26 +1,46 @@
 import {
+  Body,
   Controller,
   Get,
+  HttpCode,
   NotImplementedException,
   Post,
-  Request,
-  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PassportLocalGuard } from './guards/auth.guard';
+import { AuthInput, CreateUserDto } from 'src/users/dto/user.dto';
+import { User } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
-  @Post('login')
-  @UseGuards(PassportLocalGuard)
-  login(@Request() request) {
-    return this.authService.signIn(request.user);
+  @HttpCode(200)
+  @Get()
+  async findAll(): Promise<User[]> {
+    return await this.usersService.findAll();
   }
 
+  @HttpCode(201)
+  @Post('register')
+  async register(@Body() input: CreateUserDto): Promise<boolean> {
+    const user = await this.usersService.create(input);
+    if (!user) return false;
+    return true;
+  }
+
+  @HttpCode(200)
+  @Post('login')
+  async login(@Body() input: AuthInput) {
+    return await this.authService.authenticate(input);
+  }
+
+  @HttpCode(200)
   @Get('profile')
-  getUserInfo() {
+  async getUserInfo() {
     throw new NotImplementedException();
   }
 }
