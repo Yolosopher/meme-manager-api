@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TokenModule } from './token/token.module';
 import { MemesModule } from './memes/memes.module';
+import { ImageModule } from './image/image.module';
+import { GenerateUidModule } from './generate-uid/generate-uid.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { MemesModule } from './memes/memes.module';
     AuthModule,
     TokenModule,
     MemesModule,
+    ImageModule,
+    GenerateUidModule,
   ],
   controllers: [AppController],
   providers: [

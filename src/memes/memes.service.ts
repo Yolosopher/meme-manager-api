@@ -6,24 +6,54 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { CreateMemeDto, FindAllDto, UpdateMemeDto } from './dto/memes.dto';
-import { Meme, Prisma } from '@prisma/client';
+import {
+  CreateMemeDto,
+  FindAllDto,
+  IMeme,
+  UpdateMemeDto,
+} from './dto/memes.dto';
+import { Meme } from '@prisma/client';
+import { ImageService } from 'src/image/image.service';
 
 @Injectable()
 export class MemesService {
   private per_page: number = 10;
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private imageService: ImageService,
+  ) {}
 
-  async create(authorId: number, createMemeDto: CreateMemeDto): Promise<Meme> {
-    return await this.databaseService.meme.create({
+  async create(
+    authorId: number,
+    createMemeDto: CreateMemeDto,
+    image: Express.Multer.File,
+  ): Promise<Meme> {
+    // upload image to s3
+    try {
+      await this.imageService.uploadImage(image);
+    } catch (error) {
+      throw new HttpException(
+        'Error uploading image to S3',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // save meme in database
+    const result = await this.databaseService.meme.create({
       data: {
         ...createMemeDto,
         authorId,
+        imageName: image.filename,
       },
     });
+    // delete local image
+
+    this.imageService.deleteLocalImage(image.filename);
+
+    return result;
   }
 
-  async findAll({ orderBy, page, authorId }: FindAllDto): Promise<Meme[]> {
+  async findAll({ orderBy, page, authorId }: FindAllDto): Promise<IMeme[]> {
     const where = authorId ? { authorId } : undefined;
 
     const result = await this.databaseService.meme.findMany({
@@ -40,10 +70,18 @@ export class MemesService {
     if (result.length === 0) {
       throw new NotFoundException('No memes found');
     }
-    return result;
+
+    const memesWithSignedUrls: IMeme[] = [];
+
+    for (const meme of result) {
+      const imageUrl = await this.imageService.getSignedUrl(meme.imageName);
+      memesWithSignedUrls.push({ ...meme, imageUrl });
+    }
+
+    return memesWithSignedUrls;
   }
 
-  async findOne(memeId: number): Promise<Meme> {
+  async findOne(memeId: number): Promise<IMeme> {
     const foundMeme = await this.databaseService.meme.findUnique({
       where: {
         id: memeId,
@@ -52,7 +90,8 @@ export class MemesService {
     if (!foundMeme) {
       throw new NotFoundException(`Meme with ID ${memeId} not found`);
     }
-    return foundMeme;
+    const imageUrl = await this.imageService.getSignedUrl(foundMeme.imageName);
+    return { ...foundMeme, imageUrl };
   }
 
   async update(

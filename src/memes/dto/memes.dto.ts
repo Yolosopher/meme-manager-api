@@ -1,5 +1,5 @@
 import { Meme } from '@prisma/client';
-import { IsDefined, IsOptional, IsString, ValidateIf } from 'class-validator';
+import { IsDefined, IsString, ValidateIf } from 'class-validator';
 
 export class CreateMemeDto {
   @IsString()
@@ -29,4 +29,8 @@ export class FindAllDto {
   page?: number;
   orderBy?: Record<keyof Meme, OrderByDir>;
   authorId?: number;
+}
+
+export interface IMeme extends Meme {
+  imageUrl: string;
 }

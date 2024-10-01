@@ -12,6 +12,8 @@ import {
   Req,
   Put,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { MemesService } from './memes.service';
 import {
@@ -22,18 +24,13 @@ import {
 } from './dto/memes.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Meme } from '@prisma/client';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageService } from 'src/image/image.service';
+import { multerOptions } from 'src/configuration/multer.config';
 
 @Controller('memes')
 export class MemesController {
   constructor(private memesService: MemesService) {}
-
-  @HttpCode(HttpStatus.CREATED)
-  @UseGuards(AuthGuard)
-  @Post()
-  create(@Req() req, @Body() createMemeDto: CreateMemeDto) {
-    const { id } = req.user;
-    return this.memesService.create(id, createMemeDto);
-  }
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -101,5 +98,21 @@ export class MemesController {
     }
     const userId = request.user.id;
     return this.memesService.remove(+userId, +memeId);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  @Post()
+  create(
+    @Req() req,
+    @Body() createMemeDto: CreateMemeDto,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    if (!image) {
+      throw new BadRequestException('Image file is required');
+    }
+    const { id } = req.user;
+    return this.memesService.create(id, createMemeDto, image);
   }
 }
