@@ -8,6 +8,7 @@ import { CloggerModule } from './clogger/clogger.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TokenModule } from './token/token.module';
+import { MemesModule } from './memes/memes.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TokenModule } from './token/token.module';
     CloggerModule,
     AuthModule,
     TokenModule,
+    MemesModule,
   ],
   controllers: [AppController],
   providers: [

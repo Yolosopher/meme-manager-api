@@ -6,7 +6,7 @@ import {
 import { Prisma, Role, User } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
-import { CreateUserDto } from './dto/user.dto';
+import { CreateUserDto, UpdateNameDto } from './dto/user.dto';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from 'src/token/token.service';
 
@@ -131,10 +131,7 @@ export class UsersService {
     });
   }
 
-  async update(
-    id: number,
-    updateUserDto: Prisma.UserUpdateInput,
-  ): Promise<User> {
+  async update(id: number, updateUserDto: UpdateNameDto): Promise<User> {
     return await this.databaseService.user.update({
       where: {
         id,
