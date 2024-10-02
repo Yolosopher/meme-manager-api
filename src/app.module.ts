@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
@@ -6,16 +6,19 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CloggerModule } from './clogger/clogger.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TokenModule } from './token/token.module';
 import { MemesModule } from './memes/memes.module';
 import { ImageModule } from './image/image.module';
 import { GenerateUidModule } from './generate-uid/generate-uid.module';
 
+const ENV = process.env.NODE_ENV || 'development';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: !ENV ? '.env' : `.${ENV}.env`,
     }),
     ThrottlerModule.forRoot([
       {
@@ -46,4 +49,10 @@ import { GenerateUidModule } from './generate-uid/generate-uid.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private configService: ConfigService) {}
+
+  onModuleInit() {
+    console.log(this.configService.get('NODE_ENV'));
+  }
+}
