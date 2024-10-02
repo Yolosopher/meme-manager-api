@@ -8,12 +8,13 @@ import {
 import { DatabaseService } from 'src/database/database.service';
 import {
   CreateMemeDto,
-  FindAllDto,
+  FindAllMemesDto,
   IMeme,
   UpdateMemeDto,
 } from './dto/memes.dto';
 import { Meme } from '@prisma/client';
 import { ImageService } from 'src/image/image.service';
+import { PaginationMeta } from 'src/common/interfaces';
 
 @Injectable()
 export class MemesService {
@@ -53,7 +54,10 @@ export class MemesService {
     return result;
   }
 
-  async findAll({ orderBy, page, authorId }: FindAllDto): Promise<IMeme[]> {
+  async findAll({ orderBy, page, authorId }: FindAllMemesDto): Promise<{
+    data: IMeme[];
+    meta: PaginationMeta;
+  }> {
     const where = authorId ? { authorId } : undefined;
 
     const result = await this.databaseService.meme.findMany({
@@ -78,7 +82,17 @@ export class MemesService {
       memesWithSignedUrls.push({ ...meme, imageUrl });
     }
 
-    return memesWithSignedUrls;
+    const total = await this.databaseService.meme.count({ where });
+    return {
+      meta: {
+        total,
+        page,
+        per_page: this.per_page,
+        next_page: total > page * this.per_page ? page + 1 : undefined,
+        prev_page: page > 1 ? page - 1 : undefined,
+      },
+      data: memesWithSignedUrls,
+    };
   }
 
   async findOne(memeId: number): Promise<IMeme> {

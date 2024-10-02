@@ -18,15 +18,15 @@ import {
 import { MemesService } from './memes.service';
 import {
   CreateMemeDto,
-  FindAllDto,
+  FindAllMemesDto,
   OrderByDir,
   UpdateMemeDto,
 } from './dto/memes.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Meme } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageService } from 'src/image/image.service';
 import { multerOptions } from 'src/configuration/multer.config';
+import { PaginationMeta } from 'src/common/interfaces';
 
 @Controller('memes')
 export class MemesController {
@@ -39,8 +39,20 @@ export class MemesController {
     @Query('authorId') authorId?: string,
     @Query('page') page?: string,
     @Query('orderBy') orderBy?: keyof Meme,
-  ) {
-    const findAllDto: FindAllDto = {
+  ): Promise<{ data: Meme[]; meta: PaginationMeta }> {
+    // check if page value is a number
+    if (page && isNaN(+page)) {
+      throw new BadRequestException('Invalid page number');
+    }
+    // check if authorId value is a number
+    if (authorId && isNaN(+authorId)) {
+      throw new BadRequestException('Invalid author ID');
+    }
+    // check if orderBy value is a valid column name
+    if (orderBy && !['createdAt', 'updatedAt'].includes(orderBy)) {
+      throw new BadRequestException('Invalid orderBy column');
+    }
+    const FindAllMemesDto: FindAllMemesDto = {
       page: 1,
       orderBy: {
         createdAt: 'desc',
@@ -48,25 +60,25 @@ export class MemesController {
     };
 
     if (page) {
-      findAllDto.page = +page;
+      FindAllMemesDto.page = +page;
     }
     if (authorId) {
-      findAllDto.authorId = +authorId;
+      FindAllMemesDto.authorId = +authorId;
     }
     if (orderBy) {
       const orderByDir: OrderByDir = orderBy.startsWith('-') ? 'desc' : 'asc';
-      findAllDto.orderBy = {
+      FindAllMemesDto.orderBy = {
         [orderBy]: orderByDir,
       } as Record<keyof Meme, OrderByDir>;
     }
 
-    return this.memesService.findAll(findAllDto);
+    return this.memesService.findAll(FindAllMemesDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Get(':memeId')
-  findOne(@Param('memeId') memeId: string) {
+  findOne(@Param('memeId') memeId: string): Promise<Meme> {
     if (isNaN(+memeId)) {
       throw new BadRequestException('Invalid meme ID');
     }
@@ -80,7 +92,7 @@ export class MemesController {
     @Req() request,
     @Param('memeId') memeId: string,
     @Body() updateMemeDto: UpdateMemeDto,
-  ) {
+  ): Promise<Meme> {
     if (isNaN(+memeId)) {
       throw new BadRequestException('Invalid meme ID');
     }
@@ -92,7 +104,7 @@ export class MemesController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Delete(':memeId')
-  remove(@Req() request, @Param('memeId') memeId: string) {
+  remove(@Req() request, @Param('memeId') memeId: string): Promise<Meme> {
     if (isNaN(+memeId)) {
       throw new BadRequestException('Invalid meme ID');
     }
@@ -108,7 +120,7 @@ export class MemesController {
     @Req() req,
     @Body() createMemeDto: CreateMemeDto,
     @UploadedFile() image: Express.Multer.File,
-  ) {
+  ): Promise<Meme> {
     if (!image) {
       throw new BadRequestException('Image file is required');
     }

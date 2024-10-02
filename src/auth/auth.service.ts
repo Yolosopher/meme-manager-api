@@ -55,8 +55,6 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    console.log('till here..............................');
-
     const authResult = await this.signIn({
       email: user.email,
       name: user.name,

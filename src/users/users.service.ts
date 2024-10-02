@@ -1,17 +1,26 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma, Role, User } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
-import { CreateUserDto, UpdateNameDto } from './dto/user.dto';
+import {
+  CreateUserDto,
+  FoundUser,
+  SearchUsersDto,
+  UpdateNameDto,
+} from './dto/user.dto';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from 'src/token/token.service';
+import { PaginationMeta } from 'src/common/interfaces';
 
 @Injectable()
 export class UsersService {
+  private per_page: number = 10;
   constructor(
     private configService: ConfigService,
     private databaseService: DatabaseService,
@@ -146,5 +155,55 @@ export class UsersService {
         id,
       },
     });
+  }
+
+  async search({
+    search,
+    page,
+  }: SearchUsersDto): Promise<{ data: FoundUser[]; meta: PaginationMeta }> {
+    const where = {
+      OR: [
+        {
+          name: {
+            contains: search,
+          },
+        },
+        {
+          email: {
+            contains: search,
+          },
+        },
+      ],
+    };
+    const foundUsers = await this.databaseService.user.findMany({
+      take: this.per_page,
+      skip: (page - 1) * this.per_page,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    // check if empty array and throw not found exception
+    if (foundUsers.length < 1) {
+      throw new NotFoundException('No users found');
+    }
+
+    const total = await this.databaseService.user.count({ where });
+    const meta: PaginationMeta = {
+      total,
+      page,
+      per_page: this.per_page,
+      next_page: total > page * this.per_page ? page + 1 : undefined,
+      prev_page: page > 1 ? page - 1 : undefined,
+    };
+
+    return { meta, data: foundUsers };
   }
 }

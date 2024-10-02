@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -29,13 +30,6 @@ export class AuthController {
     private authService: AuthService,
     private usersService: UsersService,
   ) {}
-
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AdminGuard)
-  @Get()
-  async findAll(): Promise<Omit<User, 'password'>[]> {
-    return await this.usersService.findAll();
-  }
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(AdminGuard)
@@ -63,7 +57,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Get('profile')
-  async getUserInfo(@Req() request) {
+  async getSelf(@Req() request): Promise<AuthResult> {
     const self = request.user;
     return self;
   }

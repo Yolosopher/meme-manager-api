@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
 
 export class CreateUserDto {
@@ -6,6 +6,9 @@ export class CreateUserDto {
   email: string;
 
   @IsString()
+  @MinLength(5, {
+    message: 'Name is too short (minimum 5 characters)',
+  })
   name: string;
 
   @IsString()
@@ -37,3 +40,11 @@ export type SignInData = {
 };
 
 export type AuthResult = SignInData & { accessToken: string };
+
+export interface FoundUser
+  extends Pick<User, 'name' | 'email' | 'id' | 'role'> {}
+
+export class SearchUsersDto {
+  search: string;
+  page: number;
+}

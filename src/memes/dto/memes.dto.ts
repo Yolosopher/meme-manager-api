@@ -1,5 +1,5 @@
 import { Meme } from '@prisma/client';
-import { IsDefined, IsString, ValidateIf } from 'class-validator';
+import { IsDefined, IsOptional, IsString, ValidateIf } from 'class-validator';
 
 export class CreateMemeDto {
   @IsString()
@@ -11,9 +11,11 @@ export class CreateMemeDto {
 
 export class UpdateMemeDto {
   @IsString()
+  @IsOptional()
   title?: string;
 
   @IsString()
+  @IsOptional()
   description?: string;
 
   @ValidateIf((o) => !o.title && !o.description)
@@ -25,7 +27,7 @@ export class UpdateMemeDto {
 
 export type OrderByDir = 'asc' | 'desc';
 
-export class FindAllDto {
+export class FindAllMemesDto {
   page?: number;
   orderBy?: Record<keyof Meme, OrderByDir>;
   authorId?: number;
