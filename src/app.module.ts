@@ -14,7 +14,6 @@ import { GenerateUidModule } from './generate-uid/generate-uid.module';
 import { FollowerModule } from './follower/follower.module';
 
 const ENV = process.env.NODE_ENV || 'development';
-console.log('env logging', ENV);
 
 @Module({
   imports: [
