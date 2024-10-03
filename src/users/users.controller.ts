@@ -11,20 +11,11 @@ import {
 import { UsersService } from './users.service';
 import { FoundUser, SearchUsersDto } from './dto/user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { AdminGuard } from 'src/auth/guards/admin.guard';
-import { User } from '@prisma/client';
 import { PaginationMeta } from 'src/common/interfaces';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
-
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AdminGuard)
-  @Get('/admin')
-  async findAllAdmin(): Promise<Omit<User, 'password'>[]> {
-    return await this.usersService.findAll();
-  }
 
   @HttpCode(HttpStatus.OK)
   @Get()

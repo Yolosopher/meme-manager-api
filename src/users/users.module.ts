@@ -13,9 +13,4 @@ import { JwtModule } from '@nestjs/jwt';
   exports: [UsersService],
   controllers: [UsersController],
 })
-export class UsersModule implements OnModuleInit {
-  constructor(private usersService: UsersService) {}
-  onModuleInit() {
-    this.usersService.initAdmin();
-  }
-}
+export class UsersModule {}

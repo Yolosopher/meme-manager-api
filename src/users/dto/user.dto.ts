@@ -44,8 +44,8 @@ export type AuthResult = SignInData & { accessToken: string };
 export interface FoundUser
   extends Pick<User, 'name' | 'email' | 'id' | 'role'> {}
 
-export class SearchUsersDto {
+export interface SearchUsersDto {
   selfId: number;
   search: string;
-  page: number;
+  page?: number;
 }

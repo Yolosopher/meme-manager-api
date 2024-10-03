@@ -28,37 +28,6 @@ export class UsersService {
     private hasherService: HasherService,
     private tokenService: TokenService,
   ) {}
-  async initAdmin() {
-    try {
-      console.log('Initializing admin user...');
-      const admin = await this.databaseService.user.findFirst({
-        where: {
-          role: Role.ADMIN,
-        },
-      });
-
-      if (!admin) {
-        console.log('Admin user not found, creating one...');
-        await this.databaseService.user.create({
-          data: {
-            email: this.configService.get('ADMIN_EMAIL'),
-            password: await this.hasherService.hash(
-              this.configService.get('ADMIN_PASSWORD'),
-            ),
-            role: Role.ADMIN,
-            name: this.configService.get('ADMIN_NAME'),
-          },
-        });
-        console.log(
-          'Admin user created with email',
-          this.configService.get('ADMIN_EMAIL'),
-        );
-      }
-      console.log('Admin user already exists');
-    } catch (error) {
-      console.log('Error initializing admin user', error);
-    }
-  }
 
   async create(createUserDto: CreateUserDto) {
     // check if user already exists
@@ -77,28 +46,6 @@ export class UsersService {
     };
     return await this.databaseService.user.create({
       data: payload,
-    });
-  }
-
-  async findAll(role?: 'USER' | 'ADMIN'): Promise<Omit<User, 'password'>[]> {
-    const select = {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    };
-    if (role) {
-      return await this.databaseService.user.findMany({
-        where: {
-          role,
-        },
-        select,
-      });
-    }
-    return await this.databaseService.user.findMany({
-      select,
     });
   }
 

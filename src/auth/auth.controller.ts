@@ -5,10 +5,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   Put,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -19,10 +17,8 @@ import {
   AuthResult,
   UpdateNameDto,
 } from 'src/users/dto/user.dto';
-import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { AuthGuard } from './guards/auth.guard';
-import { AdminGuard } from './guards/admin.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -30,15 +26,6 @@ export class AuthController {
     private authService: AuthService,
     private usersService: UsersService,
   ) {}
-
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AdminGuard)
-  @Delete(':id')
-  async deleteUser(@Param('id') id: number): Promise<boolean> {
-    const user = await this.usersService.remove(id);
-    if (!user) return false;
-    return true;
-  }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
