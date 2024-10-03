@@ -45,6 +45,7 @@ export interface FoundUser
   extends Pick<User, 'name' | 'email' | 'id' | 'role'> {}
 
 export class SearchUsersDto {
+  selfId: number;
   search: string;
   page: number;
 }

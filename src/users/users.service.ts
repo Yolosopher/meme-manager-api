@@ -160,18 +160,28 @@ export class UsersService {
   async search({
     search,
     page,
+    selfId,
   }: SearchUsersDto): Promise<{ data: FoundUser[]; meta: PaginationMeta }> {
     const where = {
-      OR: [
+      AND: [
         {
-          name: {
-            contains: search,
+          id: {
+            not: selfId,
           },
         },
         {
-          email: {
-            contains: search,
-          },
+          OR: [
+            {
+              name: {
+                contains: search,
+              },
+            },
+            {
+              email: {
+                contains: search,
+              },
+            },
+          ],
         },
       ],
     };

@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -29,9 +30,11 @@ export class UsersController {
   @Get()
   @UseGuards(AuthGuard)
   async search(
+    @Req() req,
     @Query('search') search: string,
-    @Query('page') page: string,
+    @Query('page') page?: string,
   ): Promise<{ data: FoundUser[]; meta: PaginationMeta }> {
+    const selfId = req.user.id;
     if (!search) {
       throw new BadRequestException('Search query is required');
     }
@@ -47,6 +50,7 @@ export class UsersController {
     }
 
     const searchUsersDto: SearchUsersDto = {
+      selfId,
       search: '',
       page: 1,
     };

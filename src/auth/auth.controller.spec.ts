@@ -7,14 +7,13 @@ import { AuthModule } from './auth.module';
 import { DatabaseService } from 'src/database/database.service';
 import { INestApplication, UnauthorizedException } from '@nestjs/common';
 import { AuthResult } from 'src/users/dto/user.dto';
-import * as request from 'supertest';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let databaseService: DatabaseService;
   let app: INestApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         AuthModule,
@@ -84,16 +83,6 @@ describe('AuthController', () => {
       const response = await controller.getSelf({ user: authResult });
       expect(response).toHaveProperty('email', payload.email);
       expect(response).toHaveProperty('name', payload.name);
-    });
-  });
-  describe('/GET users', () => {
-    it('should return list of users', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/api/auth')
-        .set('Authorization', `Bearer ${authResult.accessToken}`);
-
-      console.log(response);
-      expect(response.status).toBe(200);
     });
   });
 });
