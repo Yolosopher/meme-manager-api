@@ -10,6 +10,7 @@ import {
   CreateMemeDto,
   FindAllMemesDto,
   IMeme,
+  IMemeWithLikes,
   UpdateMemeDto,
 } from './dto/memes.dto';
 import { Meme } from '@prisma/client';
@@ -24,7 +25,7 @@ export class MemesService {
     private imageService: ImageService,
   ) {}
 
-  async create(
+  public async create(
     authorId: number,
     createMemeDto: CreateMemeDto,
     image: Express.Multer.File,
@@ -54,7 +55,7 @@ export class MemesService {
     return result;
   }
 
-  async findAll({ orderBy, page, authorId }: FindAllMemesDto): Promise<{
+  public async findAll({ orderBy, page, authorId }: FindAllMemesDto): Promise<{
     data: IMeme[];
     meta: PaginationMeta;
   }> {
@@ -95,25 +96,52 @@ export class MemesService {
     };
   }
 
-  async findOne(memeId: number): Promise<IMeme> {
+  public async findOne<T extends boolean>(
+    memeId: number,
+    populateLikes: T,
+  ): Promise<T extends true ? IMemeWithLikes : IMeme> {
+    let include = undefined;
+    if (populateLikes) {
+      include = {
+        likes: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+            createdAt: true,
+          },
+          take: 5,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      };
+    }
     const foundMeme = await this.databaseService.meme.findUnique({
       where: {
         id: memeId,
       },
+      include,
     });
     if (!foundMeme) {
       throw new NotFoundException(`Meme with ID ${memeId} not found`);
     }
     const imageUrl = await this.imageService.getSignedUrl(foundMeme.imageName);
-    return { ...foundMeme, imageUrl };
+    return { ...foundMeme, imageUrl } as T extends true
+      ? IMemeWithLikes
+      : IMeme;
   }
 
-  async update(
+  public async update(
     userId: number,
     memeId: number,
     updateMemeDto: UpdateMemeDto,
   ): Promise<Meme> {
-    const foundMeme = await this.findOne(memeId);
+    const foundMeme = await this.findOne(memeId, false);
 
     // Check if the user is the author of the meme
     if (foundMeme.authorId !== userId) {
@@ -128,8 +156,22 @@ export class MemesService {
     });
   }
 
-  async remove(userId: number, memeId: number): Promise<Meme> {
-    const foundMeme = await this.findOne(memeId);
+  public async updateLikesCount(
+    memeId: number,
+    likesCount: number,
+  ): Promise<Meme> {
+    return await this.databaseService.meme.update({
+      where: {
+        id: memeId,
+      },
+      data: {
+        likesCount,
+      },
+    });
+  }
+
+  public async remove(userId: number, memeId: number): Promise<Meme> {
+    const foundMeme = await this.findOne(memeId, false);
 
     // Check if the user is the author of the meme
     if (foundMeme.authorId !== userId) {

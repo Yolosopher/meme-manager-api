@@ -36,3 +36,7 @@ export class FindAllMemesDto {
 export interface IMeme extends Meme {
   imageUrl: string;
 }
+
+export interface IMemeWithLikes extends IMeme {
+  likes: { user: { id: number; email: string; name: string } }[];
+}

@@ -78,11 +78,19 @@ export class MemesController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Get(':memeId')
-  findOne(@Param('memeId') memeId: string): Promise<Meme> {
+  findOne(
+    @Param('memeId') memeId: string,
+    @Query('populate') populate?: string,
+  ): Promise<Meme> {
     if (isNaN(+memeId)) {
       throw new BadRequestException('Invalid meme ID');
     }
-    return this.memesService.findOne(+memeId);
+
+    if (populate && populate === 'true') {
+      return this.memesService.findOne(+memeId, true);
+    }
+
+    return this.memesService.findOne(+memeId, false);
   }
 
   @HttpCode(HttpStatus.OK)
