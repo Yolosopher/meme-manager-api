@@ -28,31 +28,35 @@ export class UsersService {
     private tokenService: TokenService,
   ) {}
   async initAdmin() {
-    console.log('Initializing admin user...');
-    const admin = await this.databaseService.user.findFirst({
-      where: {
-        role: Role.ADMIN,
-      },
-    });
-
-    if (!admin) {
-      console.log('Admin user not found, creating one...');
-      await this.databaseService.user.create({
-        data: {
-          email: this.configService.get('ADMIN_EMAIL'),
-          password: await this.hasherService.hash(
-            this.configService.get('ADMIN_PASSWORD'),
-          ),
+    try {
+      console.log('Initializing admin user...');
+      const admin = await this.databaseService.user.findFirst({
+        where: {
           role: Role.ADMIN,
-          name: this.configService.get('ADMIN_NAME'),
         },
       });
-      console.log(
-        'Admin user created with email',
-        this.configService.get('ADMIN_EMAIL'),
-      );
+
+      if (!admin) {
+        console.log('Admin user not found, creating one...');
+        await this.databaseService.user.create({
+          data: {
+            email: this.configService.get('ADMIN_EMAIL'),
+            password: await this.hasherService.hash(
+              this.configService.get('ADMIN_PASSWORD'),
+            ),
+            role: Role.ADMIN,
+            name: this.configService.get('ADMIN_NAME'),
+          },
+        });
+        console.log(
+          'Admin user created with email',
+          this.configService.get('ADMIN_EMAIL'),
+        );
+      }
+      console.log('Admin user already exists');
+    } catch (error) {
+      console.log('Error initializing admin user', error);
     }
-    console.log('Admin user already exists');
   }
 
   async create(createUserDto: CreateUserDto) {

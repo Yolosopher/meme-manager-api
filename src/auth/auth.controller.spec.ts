@@ -5,14 +5,18 @@ import { TokenModule } from 'src/token/token.module';
 import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from './auth.module';
 import { DatabaseService } from 'src/database/database.service';
-import { INestApplication, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthResult } from 'src/users/dto/user.dto';
+import { randomUUID } from 'crypto';
 
+const payload = {
+  email: randomUUID() + '@gmail.com',
+  password: 'test2password',
+  name: 'testname4',
+};
+let authResult: AuthResult;
+let controller: AuthController;
 describe('AuthController', () => {
-  let controller: AuthController;
-  let databaseService: DatabaseService;
-  let app: INestApplication;
-
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -29,39 +33,9 @@ describe('AuthController', () => {
       providers: [DatabaseService],
     }).compile();
 
-    app = module.createNestApplication();
-    await app.init();
     controller = module.get<AuthController>(AuthController);
-    databaseService = module.get<DatabaseService>(DatabaseService);
   });
 
-  afterAll(async () => {
-    // Fetch all table names in the public schema
-    const tables = await databaseService.$queryRaw<{ table_name: string }[]>`
-    SELECT table_name FROM information_schema.tables
-    WHERE table_schema = 'public'
-    AND table_type = 'BASE TABLE';
-  `;
-
-    // Generate a TRUNCATE command for all tables
-    const tableNames = tables
-      .map((table) => `"${table.table_name}"`)
-      .join(', ');
-
-    // Truncate all tables
-    await databaseService.$executeRawUnsafe(
-      `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`,
-    );
-
-    await databaseService.$disconnect(); // Disconnect Prisma
-  });
-
-  const payload = {
-    email: 'test@gmail.com',
-    password: 'testpassword',
-    name: 'testname',
-  };
-  let authResult: AuthResult;
   describe('UNIT TESTS', () => {
     it('should return 403 when trying to login with invalid credentials', async () => {
       await expect(
