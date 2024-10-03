@@ -1,4 +1,6 @@
 import {
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -42,6 +44,18 @@ export class ImageService {
     }
   }
 
+  async deleteImage(imageName: string): Promise<true> {
+    const deleteObjectParams = {
+      Bucket: this.configService.get('AWS_BUCKET_NAME'),
+      Key: imageName,
+    };
+
+    const command = new DeleteObjectCommand(deleteObjectParams);
+    await this.s3.send(command);
+
+    return true;
+  }
+
   async getSignedUrl(key: string): Promise<string> {
     const getObjectParams = {
       Bucket: this.configService.get('AWS_BUCKET_NAME'),
@@ -68,5 +82,19 @@ export class ImageService {
     } catch (error) {
       // nothing
     }
+  }
+
+  async deleteMultipleImages(imageNames: string[]): Promise<true> {
+    const deleteObjectsParams = {
+      Bucket: this.configService.get('AWS_BUCKET_NAME'),
+      Delete: {
+        Objects: imageNames.map((imageName) => ({ Key: imageName })),
+      },
+    };
+
+    const command = new DeleteObjectsCommand(deleteObjectsParams);
+    await this.s3.send(command);
+
+    return true;
   }
 }

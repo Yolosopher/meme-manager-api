@@ -6,9 +6,19 @@ import { TokenModule } from 'src/token/token.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersController } from './users.controller';
 import { JwtModule } from '@nestjs/jwt';
+import { MemesModule } from 'src/memes/memes.module';
+import { ImageModule } from 'src/image/image.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, HasherModule, TokenModule, JwtModule],
+  imports: [
+    ConfigModule,
+    MemesModule,
+    DatabaseModule,
+    HasherModule,
+    TokenModule,
+    JwtModule,
+    ImageModule,
+  ],
   providers: [UsersService],
   exports: [UsersService],
   controllers: [UsersController],

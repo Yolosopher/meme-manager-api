@@ -183,6 +183,23 @@ export class MemesService {
         id: memeId,
       },
     });
+
+    // delete image from s3
+    await this.imageService.deleteImage(foundMeme.imageName);
+
     return meme;
+  }
+
+  public async findUserMemeImageNames(userId: number): Promise<string[]> {
+    const memes = await this.databaseService.meme.findMany({
+      where: {
+        authorId: userId,
+      },
+      select: {
+        imageName: true,
+      },
+    });
+
+    return memes.map((meme) => meme.imageName);
   }
 }

@@ -18,15 +18,17 @@ import { ConfigService } from '@nestjs/config';
 import { TokenService } from 'src/token/token.service';
 import { PaginationMeta } from 'src/common/interfaces';
 import { FollowerService } from 'src/follower/follower.service';
+import { MemesService } from 'src/memes/memes.service';
+import { ImageService } from 'src/image/image.service';
 
 @Injectable()
 export class UsersService {
   private per_page: number = 10;
   constructor(
-    private configService: ConfigService,
     private databaseService: DatabaseService,
     private hasherService: HasherService,
-    private tokenService: TokenService,
+    private memesService: MemesService,
+    private imageService: ImageService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -103,12 +105,25 @@ export class UsersService {
     });
   }
 
-  async remove(id: number) {
-    return await this.databaseService.user.delete({
+  async remove(id: number): Promise<User> {
+    try {
+      // delete meme images from s3
+      const memeImageNames = await this.memesService.findUserMemeImageNames(id);
+
+      if (memeImageNames.length > 0) {
+        await this.imageService.deleteMultipleImages(memeImageNames);
+      }
+    } catch (error) {
+      console.log(
+        `Error deleting meme images after user got deleted: ${error}`,
+      );
+    }
+    const result = await this.databaseService.user.delete({
       where: {
         id,
       },
     });
+    return result;
   }
 
   async search({
