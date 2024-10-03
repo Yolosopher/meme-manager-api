@@ -11,6 +11,7 @@ import { TokenModule } from './token/token.module';
 import { MemesModule } from './memes/memes.module';
 import { ImageModule } from './image/image.module';
 import { GenerateUidModule } from './generate-uid/generate-uid.module';
+import { FollowerModule } from './follower/follower.module';
 
 const ENV = process.env.NODE_ENV || 'development';
 console.log('env logging', ENV);
@@ -40,6 +41,7 @@ console.log('env logging', ENV);
     MemesModule,
     ImageModule,
     GenerateUidModule,
+    FollowerModule,
   ],
   controllers: [AppController],
   providers: [

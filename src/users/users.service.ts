@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma, Role, User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
 import {
@@ -17,6 +17,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from 'src/token/token.service';
 import { PaginationMeta } from 'src/common/interfaces';
+import { FollowerService } from 'src/follower/follower.service';
 
 @Injectable()
 export class UsersService {
@@ -64,7 +65,9 @@ export class UsersService {
     const foundUser = await this.findUserByEmail(createUserDto.email);
 
     if (foundUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException(
+        `Email already exists ${createUserDto.email}`,
+      );
     }
 
     const payload = {
