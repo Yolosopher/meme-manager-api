@@ -1,10 +1,14 @@
 {
-	"name": "meme-manager",
-	"version": "0.0.1",
-	"description": "",
-	"author": "",
+	"name": "meme-manager-api",
+	"version": "1.0.0",
+	"description": "A NestJS API for managing and serving memes efficiently.",
+	"author": "Yolosopher",
 	"private": true,
-	"license": "UNLICENSED",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Yolosopher/meme-manager-api"
+	},
 	"scripts": {
 		"build": "nest build",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -18,7 +22,8 @@
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
 		"test:e2e": "jest --config ./test/jest-e2e.json",
-		"dev-prisma-ready": "dotenv -e .development.env -- npx prisma db push"
+		"dev-prisma-ready": "dotenv -e .development.env -- npx prisma db push",
+		"prod-prisma-ready": "npx prisma db push"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.662.0",
