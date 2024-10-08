@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import {
+  CreateMemeBase64Dto,
   CreateMemeDto,
   FindAllMemesDto,
   IMeme,
@@ -51,6 +52,45 @@ export class MemesService {
     // delete local image
 
     this.imageService.deleteLocalImage(image.filename);
+
+    return result;
+  }
+  public async createFrombase64(
+    authorId: number,
+    {
+      base64String,
+      description,
+      fileName,
+      mimeType,
+      title,
+    }: CreateMemeBase64Dto,
+  ): Promise<Meme> {
+    // upload image to s3
+    try {
+      const buffer = await this.imageService.getBufferFromBase64({
+        base64String,
+      });
+      await this.imageService.uploadBase64Image({
+        mimetype: mimeType,
+        filename: fileName,
+        buffer,
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Error uploading image to S3',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // save meme in database
+    const result = await this.databaseService.meme.create({
+      data: {
+        title,
+        description,
+        authorId,
+        imageName: fileName,
+      },
+    });
 
     return result;
   }

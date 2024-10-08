@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import { MemesService } from './memes.service';
 import {
+  CreateMemeBase64Dto,
   CreateMemeDto,
   FindAllMemesDto,
   OrderByDir,
@@ -118,6 +119,37 @@ export class MemesController {
     }
     const userId = request.user.id;
     return this.memesService.remove(+userId, +memeId);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
+  @Post('base64')
+  createFromBase64(
+    @Req() req,
+    @Body() createMemeDto: CreateMemeBase64Dto,
+  ): Promise<Meme> {
+    const { base64String, description, title, fileName, mimeType } =
+      createMemeDto;
+
+    if (!base64String) {
+      throw new BadRequestException('Image base64 string is required');
+    }
+    if (!fileName) {
+      throw new BadRequestException('Image file name is required');
+    }
+
+    if (!mimeType) {
+      throw new BadRequestException('Image MIME type is required');
+    }
+
+    const { id } = req.user;
+    return this.memesService.createFrombase64(id, {
+      base64String,
+      description,
+      title,
+      fileName,
+      mimeType,
+    });
   }
 
   @HttpCode(HttpStatus.CREATED)

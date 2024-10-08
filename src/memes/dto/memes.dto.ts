@@ -1,5 +1,12 @@
 import { Meme } from '@prisma/client';
-import { IsDefined, IsOptional, IsString, ValidateIf } from 'class-validator';
+import {
+  IsBase64,
+  IsDefined,
+  IsMimeType,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreateMemeDto {
   @IsString()
@@ -7,9 +14,23 @@ export class CreateMemeDto {
 
   @IsString()
   description: string;
+}
 
-  @IsOptional()
-  image?: any;
+export class CreateMemeBase64Dto {
+  @IsString()
+  title: string;
+
+  @IsString()
+  description: string;
+
+  @IsString()
+  fileName: string;
+
+  @IsBase64()
+  base64String: string;
+
+  @IsMimeType()
+  mimeType: string;
 }
 
 export class UpdateMemeDto {

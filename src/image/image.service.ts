@@ -5,12 +5,13 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { minutesToSeconds } from 'date-fns';
-import { readFile, unlink } from 'fs/promises';
+import { readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class ImageService {
@@ -24,6 +25,22 @@ export class ImageService {
       region: this.configService.get('AWS_REGION'),
     });
   }
+  async getBufferFromBase64({
+    base64String,
+  }: {
+    base64String: string;
+  }): Promise<any> {
+    try {
+      const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+
+      const buffer = Buffer.from(base64Data, 'base64');
+      return buffer;
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(error.message);
+    }
+  }
+
   async uploadImage({
     filename,
     mimetype,
@@ -31,6 +48,29 @@ export class ImageService {
   }: Express.Multer.File): Promise<void> {
     try {
       const buffer = await this.getBufferFromImage(path);
+      const command = new PutObjectCommand({
+        Bucket: this.configService.get('AWS_BUCKET_NAME'),
+        Key: filename,
+        Body: buffer,
+        ContentType: mimetype,
+      });
+
+      await this.s3.send(command);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async uploadBase64Image({
+    filename,
+    mimetype,
+    buffer,
+  }: {
+    filename: string;
+    mimetype: string;
+    buffer: Buffer;
+  }): Promise<void> {
+    try {
       const command = new PutObjectCommand({
         Bucket: this.configService.get('AWS_BUCKET_NAME'),
         Key: filename,
