@@ -7,6 +7,9 @@ export class CreateMemeDto {
 
   @IsString()
   description: string;
+
+  @IsOptional()
+  image?: any;
 }
 
 export class UpdateMemeDto {
