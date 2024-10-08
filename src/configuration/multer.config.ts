@@ -23,6 +23,8 @@ export const multerOptions: MulterOptions = {
     fileSize: Number(process.env.MAX_FILE_SIZE!),
   },
   fileFilter(_, file, callback) {
+    console.log('file');
+    console.log(file);
     if (!file.mimetype.includes('image')) {
       return callback(
         new BadRequestException('Only image files are allowed!'),
