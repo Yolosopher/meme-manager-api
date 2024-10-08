@@ -46,7 +46,7 @@ export class AuthController {
   @Get('profile')
   async getSelf(@Req() request): Promise<AuthResult> {
     const self = request.user;
-    return self;
+    return { ...self, authToken: request.token };
   }
 
   @HttpCode(HttpStatus.OK)
