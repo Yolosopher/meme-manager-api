@@ -11,6 +11,8 @@ export const multerOptions: MulterOptions = {
       cb(null, IMAGE_TEMP_FOLDER);
     },
     filename(_, file, cb) {
+      console.log('file');
+      console.log(file);
       const uniqueSuffix = uuid();
       const fileExtension = file.originalname.split('.').pop();
       const finalFileName = `${uniqueSuffix}.${fileExtension}`;
