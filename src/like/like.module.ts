@@ -7,6 +7,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { TokenModule } from 'src/token/token.module';
 import { UsersModule } from 'src/users/users.module';
 import { MemesModule } from 'src/memes/memes.module';
+import { LikeGateway } from './like.gateway';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { MemesModule } from 'src/memes/memes.module';
     MemesModule,
   ],
   controllers: [LikeController],
-  providers: [LikeService],
+  providers: [LikeService, LikeGateway],
 })
 export class LikeModule {}
