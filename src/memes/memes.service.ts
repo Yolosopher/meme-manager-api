@@ -104,6 +104,15 @@ export class MemesService {
     const result = await this.databaseService.meme.findMany({
       take: this.per_page,
       skip: (page - 1) * this.per_page,
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
       orderBy: orderBy
         ? orderBy
         : {
