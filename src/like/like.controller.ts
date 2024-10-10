@@ -81,4 +81,28 @@ export class LikeController {
 
     return await this.likeService.findMemeLikers(findMemeLikersDto);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('status/:memeId')
+  @UseGuards(AuthGuard)
+  async likeStatus(
+    @Req() request: any,
+    @Param('memeId') memeId: string,
+  ): Promise<{ isLiked: boolean }> {
+    const userId = request.user.id;
+
+    if (!memeId) {
+      throw new BadRequestException('Meme ID is required');
+    }
+
+    // check if targetId is not number
+    if (isNaN(+memeId)) {
+      throw new BadRequestException('Invalid meme ID');
+    }
+
+    return await this.likeService.getCurrentLikeStatus({
+      memeId: +memeId,
+      userId,
+    });
+  }
 }

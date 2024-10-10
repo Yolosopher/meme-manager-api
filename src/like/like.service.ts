@@ -16,6 +16,24 @@ export class LikeService {
     private usersService: UsersService,
   ) {}
 
+  public async getCurrentLikeStatus({
+    memeId,
+    userId,
+  }: CreateLikeDto): Promise<{ isLiked: boolean }> {
+    // check if like already exists
+    const like = await this.databaseService.like.findUnique({
+      where: {
+        userId_memeId: {
+          userId,
+          memeId,
+        },
+      },
+    });
+    return {
+      isLiked: !!like,
+    };
+  }
+
   public async likeOrDislike({
     memeId,
     userId,
@@ -31,15 +49,7 @@ export class LikeService {
       throw new BadRequestException('User not found');
     }
 
-    // check if like already exists
-    const like = await this.databaseService.like.findUnique({
-      where: {
-        userId_memeId: {
-          userId,
-          memeId,
-        },
-      },
-    });
+    const like = await this.getCurrentLikeStatus({ memeId, userId });
     if (like) {
       await this.dislike({ memeId, userId }, meme);
       return {
