@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
+import { UniquesService } from 'src/uniques/uniques.service';
 import { FoundUser } from 'src/users/dto/user.dto';
 import { UsersService } from 'src/users/users.service';
 
@@ -12,6 +13,7 @@ export class FollowerService {
   constructor(
     private usersService: UsersService,
     private databaseService: DatabaseService,
+    private uniquesService: UniquesService,
   ) {}
   public async isAlreadyFollowing(
     followerId: number,
@@ -76,24 +78,28 @@ export class FollowerService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const followers: { followedBy: FoundUser }[] =
-      await this.databaseService.follows.findMany({
-        select: {
-          followedBy: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              role: true,
-            },
+    const followers = await this.databaseService.follows.findMany({
+      select: {
+        followedBy: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
           },
         },
-        where: {
-          followingId: userId,
-        },
-      });
+      },
+      where: {
+        followingId: userId,
+      },
+    });
 
-    return followers.map((follower) => follower.followedBy);
+    const followedBys = followers.map((follower) => follower.followedBy);
+
+    return followedBys.map((user) => ({
+      ...user,
+      avatarUrl: this.uniquesService.getAvatarUrl(user.email),
+    }));
   }
 
   public async getUserFollowing(userId: number): Promise<FoundUser[]> {
@@ -117,6 +123,11 @@ export class FollowerService {
       },
     });
 
-    return following.map((follow) => follow.following);
+    const followings = following.map((follow) => follow.following);
+
+    return followings.map((user) => ({
+      ...user,
+      avatarUrl: this.uniquesService.getAvatarUrl(user.email),
+    }));
   }
 }

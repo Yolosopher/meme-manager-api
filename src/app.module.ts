@@ -13,6 +13,8 @@ import { ImageModule } from './image/image.module';
 import { GenerateUidModule } from './generate-uid/generate-uid.module';
 import { FollowerModule } from './follower/follower.module';
 import { LikeModule } from './like/like.module';
+import { UniquesService } from './uniques/uniques.service';
+import { UniquesModule } from './uniques/uniques.module';
 
 const ENV = process.env.NODE_ENV || 'development';
 
@@ -43,6 +45,7 @@ const ENV = process.env.NODE_ENV || 'development';
     GenerateUidModule,
     FollowerModule,
     LikeModule,
+    UniquesModule,
   ],
   controllers: [AppController],
   providers: [
@@ -51,6 +54,7 @@ const ENV = process.env.NODE_ENV || 'development';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    UniquesService,
   ],
 })
 export class AppModule {}

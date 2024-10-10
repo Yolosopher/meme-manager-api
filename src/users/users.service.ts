@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -14,12 +13,10 @@ import {
   SearchUsersDto,
   UpdateNameDto,
 } from './dto/user.dto';
-import { ConfigService } from '@nestjs/config';
-import { TokenService } from 'src/token/token.service';
 import { PaginationMeta } from 'src/common/interfaces';
-import { FollowerService } from 'src/follower/follower.service';
 import { MemesService } from 'src/memes/memes.service';
 import { ImageService } from 'src/image/image.service';
+import { UniquesService } from 'src/uniques/uniques.service';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +26,7 @@ export class UsersService {
     private hasherService: HasherService,
     private memesService: MemesService,
     private imageService: ImageService,
+    private uniquesService: UniquesService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -46,9 +44,13 @@ export class UsersService {
       password: await this.hasherService.hash(createUserDto.password),
       role: Role.USER,
     };
-    return await this.databaseService.user.create({
+    const result = await this.databaseService.user.create({
       data: payload,
     });
+    // create user avatar
+    await this.uniquesService.generateAvatar(createUserDto.email);
+
+    return result;
   }
 
   async findUserByEmailAndPassword({
@@ -105,7 +107,7 @@ export class UsersService {
     });
   }
 
-  async remove(id: number): Promise<User> {
+  async remove(id: number, email: string): Promise<User> {
     try {
       // delete meme images from s3
       const memeImageNames = await this.memesService.findUserMemeImageNames(id);
@@ -118,6 +120,14 @@ export class UsersService {
         `Error deleting meme images after user got deleted: ${error}`,
       );
     }
+
+    // delete user avatar
+    try {
+      await this.uniquesService.deleteAvatar(email);
+    } catch (error) {
+      // do nothing
+    }
+
     const result = await this.databaseService.user.delete({
       where: {
         id,
@@ -183,6 +193,12 @@ export class UsersService {
       prev_page: page > 1 ? page - 1 : undefined,
     };
 
-    return { meta, data: foundUsers };
+    return {
+      meta,
+      data: foundUsers.map((user) => ({
+        ...user,
+        avatarUrl: this.uniquesService.getAvatarUrl(user.email),
+      })),
+    };
   }
 }

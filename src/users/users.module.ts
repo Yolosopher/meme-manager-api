@@ -8,6 +8,7 @@ import { UsersController } from './users.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { MemesModule } from 'src/memes/memes.module';
 import { ImageModule } from 'src/image/image.module';
+import { UniquesModule } from 'src/uniques/uniques.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ImageModule } from 'src/image/image.module';
     TokenModule,
     JwtModule,
     ImageModule,
+    UniquesModule,
   ],
   providers: [UsersService],
   exports: [UsersService],
