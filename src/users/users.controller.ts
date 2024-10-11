@@ -18,6 +18,14 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @HttpCode(HttpStatus.OK)
+  @Get('detailed')
+  @UseGuards(AuthGuard)
+  async getDetailed(@Req() req): Promise<DetailedSelf> {
+    const userId = req.user.id;
+    return await this.usersService.getDetailedSelf(userId);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get()
   @UseGuards(AuthGuard)
   async search(
@@ -52,13 +60,5 @@ export class UsersController {
     }
 
     return this.usersService.search(searchUsersDto);
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @Get('detailed')
-  @UseGuards(AuthGuard)
-  async getDetailed(@Req() req): Promise<DetailedSelf> {
-    const userId = req.user.id;
-    return await this.usersService.getDetailedSelf(userId);
   }
 }
