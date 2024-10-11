@@ -1,26 +1,32 @@
-import { JwtService } from '@nestjs/jwt';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
-import { AuthGuard } from './guards/auth.guard';
-import { ExecutionContext } from '@nestjs/common';
-import { Socket, Server } from 'socket.io';
+import { NotificationService } from './notification.service';
+import { JwtService } from '@nestjs/jwt';
+import { ExecutionContext, UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Server, Socket } from 'socket.io';
+import { ISocketMessage } from 'src/common/interfaces';
 import { SignInData } from 'src/users/dto/user.dto';
 import { getUserRoomName } from 'src/common/helpers';
 
 @WebSocketGateway()
-export class AuthGateway
+export class NotificationGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer() server: Server;
   constructor(
     private readonly jwtService: JwtService,
-    private authGuard: AuthGuard,
+    private readonly notificationService: NotificationService,
+    private readonly authGuard: AuthGuard,
   ) {}
   // Called after the WebSocket server is initialized
   public afterInit() {
@@ -66,15 +72,35 @@ export class AuthGateway
 
       // join the user to a room named after their id
       client.join(getUserRoomName(authResult.id));
-
       console.log('Client connected:', client.id);
+
+      await this.loadNotifications(client, authResult.id);
     } catch (error) {
       console.error('Connection error:', error.message);
       client.disconnect(); // Disconnect the client if authentication fails
     }
   }
+
   // Called when a client disconnects
   public async handleDisconnect(client: Socket) {
     console.log('Client disconnected:', client.id);
+  }
+
+  private async loadNotifications(client: Socket, userId: number) {
+    const notifications =
+      await this.notificationService.getMyNotifications(userId);
+    client.emit('notifications', notifications);
+  }
+
+  @UseGuards(AuthGuard)
+  @SubscribeMessage('fetch_notifications')
+  async fetchNotifications(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { user }: ISocketMessage,
+  ): Promise<void> {
+    const notifications = await this.notificationService.getMyNotifications(
+      user.id,
+    );
+    client.emit('notifications', notifications);
   }
 }

@@ -1,5 +1,3 @@
-import { Like } from '@prisma/client';
-
 export class CreateLikeDto {
   userId: number;
   memeId: number;

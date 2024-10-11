@@ -3,17 +3,20 @@ import { DatabaseService } from 'src/database/database.service';
 import { CreateLikeDto, FindMemeLikersDto } from './dto/like.dto';
 import { MemesService } from 'src/memes/memes.service';
 import { UsersService } from 'src/users/users.service';
-import { Meme } from '@prisma/client';
+import { Meme, NotificationType } from '@prisma/client';
 import { PaginationMeta } from 'src/common/interfaces';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Injectable()
 export class LikeService {
   private per_page: number = 20;
   constructor(
     private databaseService: DatabaseService,
-
     private memesService: MemesService,
     private usersService: UsersService,
+    private notificationService: NotificationService,
+    private notificationGateway: NotificationGateway,
   ) {}
 
   public async getCurrentLikeStatus({
@@ -21,12 +24,10 @@ export class LikeService {
     userId,
   }: CreateLikeDto): Promise<{ isLiked: boolean }> {
     // check if like already exists
-    const like = await this.databaseService.like.findUnique({
+    const like = await this.databaseService.like.findFirst({
       where: {
-        userId_memeId: {
-          userId,
-          memeId,
-        },
+        userId,
+        memeId,
       },
     });
     return {
@@ -50,7 +51,7 @@ export class LikeService {
     }
 
     const like = await this.getCurrentLikeStatus({ memeId, userId });
-    if (like) {
+    if (like.isLiked) {
       await this.dislike({ memeId, userId }, meme);
       return {
         isLiked: false,
@@ -75,6 +76,19 @@ export class LikeService {
       },
     });
     await this.memesService.updateLikesCount(memeId, meme.likesCount + 1);
+
+    // create notification
+    const socketIoServer = this.notificationGateway.server;
+
+    await this.notificationService.createNotification(
+      {
+        userId: meme.authorId,
+        fromUserId: userId,
+        type: NotificationType.LIKE,
+        memeId,
+      },
+      socketIoServer,
+    );
   }
   private async dislike(
     { memeId, userId }: CreateLikeDto,
@@ -89,6 +103,13 @@ export class LikeService {
       },
     });
     await this.memesService.updateLikesCount(memeId, meme.likesCount - 1);
+
+    // delete notification
+    await this.notificationService.deleteNotification({
+      userId: meme.authorId,
+      fromUserId: userId,
+      type: NotificationType.LIKE,
+    });
   }
 
   public async findMemeLikers({ memeId, page }: FindMemeLikersDto): Promise<{

@@ -23,11 +23,39 @@ model User {
   role      Role     @default(USER)
   tokens    Token[]
   myMemes   Meme[]
-  Like      Like[]
+  likes     Like[]
 
   // Following and Followers
   followedBy Follows[] @relation("followedBy")
   following  Follows[] @relation("following")
+
+  // Notifications
+  notifications Notification[]
+
+  sentNotifications Notification[] @relation("fromUser")
+}
+
+enum NotificationType {
+  LIKE
+  FOLLOW
+}
+
+model Notification {
+  id   Int              @id @default(autoincrement())
+  type NotificationType
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  fromUserId Int
+  fromUser   User @relation("fromUser", fields: [fromUserId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  memeId Int?
+
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, fromUserId, type])
 }
 
 model Follows {

@@ -15,9 +15,14 @@ import { FollowerModule } from './follower/follower.module';
 import { LikeModule } from './like/like.module';
 import { UniquesService } from './uniques/uniques.service';
 import { UniquesModule } from './uniques/uniques.module';
+import { NotificationModule } from './notification/notification.module';
+import { JwtModule } from '@nestjs/jwt';
 
 const ENV = process.env.NODE_ENV || 'development';
+const JWT_EXPIRATION_TIME = process.env.JWT_EXPIRATION_TIME!;
+const JWT_SECRET = process.env.JWT_SECRET!;
 
+console.log('ENV:', ENV);
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,6 +41,11 @@ const ENV = process.env.NODE_ENV || 'development';
         limit: 100,
       },
     ]),
+    JwtModule.register({
+      secret: JWT_SECRET,
+      signOptions: { expiresIn: JWT_EXPIRATION_TIME },
+      global: true,
+    }),
     DatabaseModule,
     CloggerModule,
     AuthModule,
@@ -46,6 +56,7 @@ const ENV = process.env.NODE_ENV || 'development';
     FollowerModule,
     LikeModule,
     UniquesModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [
@@ -56,5 +67,6 @@ const ENV = process.env.NODE_ENV || 'development';
     },
     UniquesService,
   ],
+  exports: [],
 })
 export class AppModule {}

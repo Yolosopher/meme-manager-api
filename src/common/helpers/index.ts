@@ -1,3 +1,3 @@
-export const getUserRoomName = (userId: string): string => {
+export const getUserRoomName = (userId: string | number): string => {
   return `user_${userId}`;
 };
