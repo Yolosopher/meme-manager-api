@@ -9,6 +9,7 @@ import { DatabaseService } from 'src/database/database.service';
 import { HasherService } from 'src/hasher/hasher.service';
 import {
   CreateUserDto,
+  DetailedSelf,
   FoundUser,
   SearchUsersDto,
   UpdateNameDto,
@@ -90,12 +91,38 @@ export class UsersService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<User> {
     return await this.databaseService.user.findUnique({
       where: {
         id,
       },
     });
+  }
+
+  async getDetailedSelf(id: number): Promise<DetailedSelf> {
+    const user = await this.databaseService.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        _count: {
+          select: {
+            myMemes: true,
+            followedBy: true,
+            following: true,
+          },
+        },
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async update(id: number, updateUserDto: UpdateNameDto): Promise<User> {

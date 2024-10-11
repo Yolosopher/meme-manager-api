@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { FoundUser, SearchUsersDto } from './dto/user.dto';
+import { DetailedSelf, FoundUser, SearchUsersDto } from './dto/user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationMeta } from 'src/common/interfaces';
 
@@ -52,5 +52,13 @@ export class UsersController {
     }
 
     return this.usersService.search(searchUsersDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('detailed')
+  @UseGuards(AuthGuard)
+  async getDetailed(@Req() req): Promise<DetailedSelf> {
+    const userId = req.user.id;
+    return await this.usersService.getDetailedSelf(userId);
   }
 }

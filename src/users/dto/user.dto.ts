@@ -51,3 +51,16 @@ export interface SearchUsersDto {
   search: string;
   page?: number;
 }
+
+export interface DetailedSelf {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: Date;
+  role: Role;
+  _count: {
+    myMemes: number;
+    followedBy: number;
+    following: number;
+  };
+}
