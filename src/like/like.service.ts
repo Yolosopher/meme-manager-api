@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateLikeDto, FindMemeLikersDto } from './dto/like.dto';
 import { MemesService } from 'src/memes/memes.service';
@@ -22,23 +26,35 @@ export class LikeService {
   public async getCurrentLikeStatus({
     memeId,
     userId,
-  }: CreateLikeDto): Promise<{ isLiked: boolean }> {
+  }: CreateLikeDto): Promise<{ isLiked: boolean; likesCount: number }> {
+    const meme = await this.memesService.findOne(memeId, false);
+    if (!meme) {
+      throw new NotFoundException('Meme not found');
+    }
     // check if like already exists
     const like = await this.databaseService.like.findFirst({
       where: {
         userId,
         memeId,
       },
+      include: {
+        meme: {
+          select: {
+            likesCount: true,
+          },
+        },
+      },
     });
     return {
       isLiked: !!like,
+      likesCount: meme.likesCount,
     };
   }
 
   public async likeOrDislike({
     memeId,
     userId,
-  }: CreateLikeDto): Promise<{ isLiked: boolean }> {
+  }: CreateLikeDto): Promise<{ isLiked: boolean; likesCount: number }> {
     // check if meme exists
     const meme = await this.memesService.findOne(memeId, false);
     if (!meme) {
@@ -55,6 +71,7 @@ export class LikeService {
       await this.dislike({ memeId, userId }, meme);
       return {
         isLiked: false,
+        likesCount: meme.likesCount - 1,
       };
     }
 
@@ -62,6 +79,7 @@ export class LikeService {
 
     return {
       isLiked: true,
+      likesCount: meme.likesCount + 1,
     };
   }
 

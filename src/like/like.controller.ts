@@ -24,7 +24,7 @@ export class LikeController {
   async likeOrDislike(
     @Req() request: any,
     @Param('memeId') memeId: string,
-  ): Promise<{ isLiked: boolean }> {
+  ): Promise<{ isLiked: boolean; likesCount: number }> {
     const userId = request.user.id;
 
     if (!memeId) {
@@ -88,7 +88,7 @@ export class LikeController {
   async likeStatus(
     @Req() request: any,
     @Param('memeId') memeId: string,
-  ): Promise<{ isLiked: boolean }> {
+  ): Promise<{ isLiked: boolean; likesCount: number }> {
     const userId = request.user.id;
 
     if (!memeId) {
