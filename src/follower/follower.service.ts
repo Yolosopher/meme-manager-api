@@ -3,7 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { NotificationType } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+import { NotificationService } from 'src/notification/notification.service';
 import { UniquesService } from 'src/uniques/uniques.service';
 import { FoundUser } from 'src/users/dto/user.dto';
 import { UsersService } from 'src/users/users.service';
@@ -14,6 +17,8 @@ export class FollowerService {
     private usersService: UsersService,
     private databaseService: DatabaseService,
     private uniquesService: UniquesService,
+    private notificationService: NotificationService,
+    private notificationGateway: NotificationGateway,
   ) {}
   public async isAlreadyFollowing(
     followerId: number,
@@ -45,6 +50,18 @@ export class FollowerService {
         followingId: targetId,
       },
     });
+
+    //  Create a notification for the target user
+    const socketIoServer = this.notificationGateway.server;
+    await this.notificationService.createNotification(
+      {
+        fromUserId: followerId,
+        userId: targetId,
+        type: NotificationType.FOLLOW,
+      },
+      socketIoServer,
+    );
+
     return true;
   }
   public async unfollowUser(
@@ -71,6 +88,14 @@ export class FollowerService {
         },
       },
     });
+
+    // Delete the notification for the target user
+    await this.notificationService.deleteNotification({
+      fromUserId: followerId,
+      type: NotificationType.FOLLOW,
+      userId: targetId,
+    });
+
     return true;
   }
   public async getUserFollowers(userId: number): Promise<FoundUser[]> {
