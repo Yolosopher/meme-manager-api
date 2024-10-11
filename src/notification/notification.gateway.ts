@@ -19,9 +19,7 @@ import { SignInData } from 'src/users/dto/user.dto';
 import { getUserRoomName } from 'src/common/helpers';
 
 @WebSocketGateway()
-export class NotificationGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
-{
+export class NotificationGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer() server: Server;
   constructor(
     private readonly jwtService: JwtService,
@@ -72,7 +70,6 @@ export class NotificationGateway
 
       // join the user to a room named after their id
       client.join(getUserRoomName(authResult.id));
-      console.log('Client connected:', client.id);
 
       await this.loadNotifications(client, authResult.id);
     } catch (error) {
@@ -81,10 +78,8 @@ export class NotificationGateway
     }
   }
 
-  // Called when a client disconnects
-  public async handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
-  }
+  // // Called when a client disconnects
+  // public async handleDisconnect(client: Socket) {}
 
   private async loadNotifications(client: Socket, userId: number) {
     const notifications =
