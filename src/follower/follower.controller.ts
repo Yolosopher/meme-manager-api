@@ -25,6 +25,7 @@ export class FollowerController {
   async getFollowers(
     @Req() request: any,
     @Query('page') page?: string,
+    @Query('per_page') per_page?: string,
   ): Promise<{
     data: FoundUser[];
     meta: PaginationMeta;
@@ -34,12 +35,19 @@ export class FollowerController {
     if (page && isNaN(+page)) {
       throw new BadRequestException('Invalid page number');
     }
+    if (per_page && isNaN(+per_page)) {
+      throw new BadRequestException('Invalid per_page number');
+    }
     const findMyFollowersDto: FindMyFollowersDto = {
-      userId,
       page: 1,
+      per_page: 10,
+      userId,
     };
     if (page) {
       findMyFollowersDto.page = +page;
+    }
+    if (per_page) {
+      findMyFollowersDto.per_page = +per_page;
     }
     return this.followerService.getUserFollowers(findMyFollowersDto);
   }
@@ -50,6 +58,7 @@ export class FollowerController {
   async getFollowing(
     @Req() request: any,
     @Query('page') page?: string,
+    @Query('per_page') per_page?: string,
   ): Promise<{
     data: FoundUser[];
     meta: PaginationMeta;
@@ -59,12 +68,19 @@ export class FollowerController {
     if (page && isNaN(+page)) {
       throw new BadRequestException('Invalid page number');
     }
+    if (per_page && isNaN(+per_page)) {
+      throw new BadRequestException('Invalid per_page number');
+    }
     const findMyFollowsDto: FindMyFollowsDto = {
-      userId,
       page: 1,
+      per_page: 10,
+      userId,
     };
     if (page) {
       findMyFollowsDto.page = +page;
+    }
+    if (per_page) {
+      findMyFollowsDto.per_page = +per_page;
     }
     return this.followerService.getUserFollowing(findMyFollowsDto);
   }

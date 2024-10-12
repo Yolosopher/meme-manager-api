@@ -1,4 +1,5 @@
 export interface FindMyFollowersDto {
+  per_page?: number;
   page?: number;
   userId: number;
 }

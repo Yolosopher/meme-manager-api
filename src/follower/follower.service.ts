@@ -14,7 +14,6 @@ import { PaginationMeta } from 'src/common/interfaces';
 
 @Injectable()
 export class FollowerService {
-  private per_page: number = 10;
   constructor(
     private usersService: UsersService,
     private databaseService: DatabaseService,
@@ -100,7 +99,11 @@ export class FollowerService {
     return true;
   }
 
-  public async getUserFollowers({ userId, page }: FindMyFollowersDto): Promise<{
+  public async getUserFollowers({
+    userId,
+    page,
+    per_page,
+  }: FindMyFollowersDto): Promise<{
     data: FoundUser[];
     meta: PaginationMeta;
   }> {
@@ -112,8 +115,8 @@ export class FollowerService {
       followingId: userId,
     };
     const followers = await this.databaseService.follows.findMany({
-      take: this.per_page,
-      skip: (page - 1) * this.per_page,
+      take: per_page,
+      skip: (page - 1) * per_page,
       orderBy: {
         followedBy: {
           name: 'asc',
@@ -138,15 +141,19 @@ export class FollowerService {
       meta: {
         total,
         page,
-        per_page: this.per_page,
-        next_page: total > page * this.per_page ? page + 1 : undefined,
+        per_page: per_page,
+        next_page: total > page * per_page ? page + 1 : undefined,
         prev_page: page > 1 ? page - 1 : undefined,
       },
       data: followers.map((follower) => follower.followedBy),
     };
   }
 
-  public async getUserFollowing({ userId, page }: FindMyFollowsDto): Promise<{
+  public async getUserFollowing({
+    userId,
+    page,
+    per_page,
+  }: FindMyFollowsDto): Promise<{
     data: FoundUser[];
     meta: PaginationMeta;
   }> {
@@ -159,8 +166,8 @@ export class FollowerService {
       followedById: userId,
     };
     const following = await this.databaseService.follows.findMany({
-      take: this.per_page,
-      skip: (page - 1) * this.per_page,
+      take: per_page,
+      skip: (page - 1) * per_page,
       orderBy: {
         following: {
           name: 'asc',
@@ -183,8 +190,8 @@ export class FollowerService {
       meta: {
         total,
         page,
-        per_page: this.per_page,
-        next_page: total > page * this.per_page ? page + 1 : undefined,
+        per_page: per_page,
+        next_page: total > page * per_page ? page + 1 : undefined,
         prev_page: page > 1 ? page - 1 : undefined,
       },
       data: following.map((follow) => follow.following),
