@@ -52,7 +52,7 @@ export class UpdateMemeDto {
 export type OrderByDir = 'asc' | 'desc';
 
 export class FindAllMemesDto {
-  page?: number;
+  page: number;
   orderBy?: Record<keyof Meme, OrderByDir>;
   authorId?: number;
 }

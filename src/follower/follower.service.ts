@@ -7,16 +7,17 @@ import { NotificationType } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { NotificationService } from 'src/notification/notification.service';
-import { UniquesService } from 'src/uniques/uniques.service';
 import { FoundUser } from 'src/users/dto/user.dto';
 import { UsersService } from 'src/users/users.service';
+import { FindMyFollowersDto, FindMyFollowsDto } from './dto/follower.dto';
+import { PaginationMeta } from 'src/common/interfaces';
 
 @Injectable()
 export class FollowerService {
+  private per_page: number = 10;
   constructor(
     private usersService: UsersService,
     private databaseService: DatabaseService,
-    private uniquesService: UniquesService,
     private notificationService: NotificationService,
     private notificationGateway: NotificationGateway,
   ) {}
@@ -98,12 +99,26 @@ export class FollowerService {
 
     return true;
   }
-  public async getUserFollowers(userId: number): Promise<FoundUser[]> {
+
+  public async getUserFollowers({ userId, page }: FindMyFollowersDto): Promise<{
+    data: FoundUser[];
+    meta: PaginationMeta;
+  }> {
     const user = await this.usersService.findOne(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    const where = {
+      followingId: userId,
+    };
     const followers = await this.databaseService.follows.findMany({
+      take: this.per_page,
+      skip: (page - 1) * this.per_page,
+      orderBy: {
+        followedBy: {
+          name: 'asc',
+        },
+      },
       select: {
         followedBy: {
           select: {
@@ -114,25 +129,43 @@ export class FollowerService {
           },
         },
       },
-      where: {
-        followingId: userId,
-      },
+      where,
     });
 
-    const followedBys = followers.map((follower) => follower.followedBy);
+    const total = await this.databaseService.follows.count({ where });
 
-    return followedBys.map((user) => ({
-      ...user,
-      avatarUrl: this.uniquesService.getAvatarUrl(user.email),
-    }));
+    return {
+      meta: {
+        total,
+        page,
+        per_page: this.per_page,
+        next_page: total > page * this.per_page ? page + 1 : undefined,
+        prev_page: page > 1 ? page - 1 : undefined,
+      },
+      data: followers.map((follower) => follower.followedBy),
+    };
   }
 
-  public async getUserFollowing(userId: number): Promise<FoundUser[]> {
+  public async getUserFollowing({ userId, page }: FindMyFollowsDto): Promise<{
+    data: FoundUser[];
+    meta: PaginationMeta;
+  }> {
     const user = await this.usersService.findOne(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    const where: any = {
+      followedById: userId,
+    };
     const following = await this.databaseService.follows.findMany({
+      take: this.per_page,
+      skip: (page - 1) * this.per_page,
+      orderBy: {
+        following: {
+          name: 'asc',
+        },
+      },
       select: {
         following: {
           select: {
@@ -143,16 +176,18 @@ export class FollowerService {
           },
         },
       },
-      where: {
-        followedById: userId,
-      },
+      where,
     });
-
-    const followings = following.map((follow) => follow.following);
-
-    return followings.map((user) => ({
-      ...user,
-      avatarUrl: this.uniquesService.getAvatarUrl(user.email),
-    }));
+    const total = await this.databaseService.follows.count({ where });
+    return {
+      meta: {
+        total,
+        page,
+        per_page: this.per_page,
+        next_page: total > page * this.per_page ? page + 1 : undefined,
+        prev_page: page > 1 ? page - 1 : undefined,
+      },
+      data: following.map((follow) => follow.following),
+    };
   }
 }

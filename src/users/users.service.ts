@@ -222,10 +222,7 @@ export class UsersService {
 
     return {
       meta,
-      data: foundUsers.map((user) => ({
-        ...user,
-        avatarUrl: this.uniquesService.getAvatarUrl(user.email),
-      })),
+      data: foundUsers,
     };
   }
 }

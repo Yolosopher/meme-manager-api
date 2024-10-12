@@ -42,9 +42,7 @@ export type SignInData = {
 export type AuthResult = SignInData & { accessToken: string };
 
 export interface FoundUser
-  extends Pick<User, 'name' | 'email' | 'id' | 'role'> {
-  avatarUrl: string;
-}
+  extends Pick<User, 'name' | 'email' | 'id' | 'role'> {}
 
 export interface SearchUsersDto {
   selfId: number;
