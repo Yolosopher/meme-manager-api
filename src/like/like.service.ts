@@ -95,6 +95,10 @@ export class LikeService {
     });
     await this.memesService.updateLikesCount(memeId, meme.likesCount + 1);
 
+    // check if the author of the meme is the same as the user liking the meme
+    if (meme.authorId === userId) {
+      return;
+    }
     // create notification
     const socketIoServer = this.notificationGateway.server;
 
@@ -121,6 +125,11 @@ export class LikeService {
       },
     });
     await this.memesService.updateLikesCount(memeId, meme.likesCount - 1);
+
+    // if the author of the meme is the same as the user disliking the meme
+    if (meme.authorId === userId) {
+      return;
+    }
 
     // delete notification
     await this.notificationService.deleteNotification({

@@ -31,6 +31,7 @@ export interface INotification extends Notification {
   fromUser: {
     id: number;
     email: string;
+    name: string;
   };
   memeImageUrl?: string;
 }

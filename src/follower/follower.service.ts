@@ -44,6 +44,11 @@ export class FollowerService {
     if (isAlreadyFollowing) {
       throw new BadRequestException('Already following this user');
     }
+
+    // check if the follower is not following themselves
+    if (followerId === targetId) {
+      throw new BadRequestException('Cannot follow yourself');
+    }
     await this.databaseService.follows.create({
       data: {
         followedById: followerId,
@@ -88,6 +93,10 @@ export class FollowerService {
         },
       },
     });
+
+    if (followerId === targetId) {
+      throw new BadRequestException('Cannot unfollow yourself');
+    }
 
     // Delete the notification for the target user
     await this.notificationService.deleteNotification({

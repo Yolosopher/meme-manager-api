@@ -32,6 +32,7 @@ export class NotificationService {
           select: {
             id: true,
             email: true,
+            name: true,
           },
         },
       },
@@ -89,6 +90,7 @@ export class NotificationService {
               select: {
                 id: true,
                 email: true,
+                name: true,
               },
             },
           },
@@ -180,6 +182,7 @@ export class NotificationService {
     notification: INotification,
     server: Server,
   ) {
+    console.log('emmiting new notification');
     server
       .to(getUserRoomName(notification.userId))
       .emit('new_notification', notification);
