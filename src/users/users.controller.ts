@@ -45,6 +45,7 @@ export class UsersController {
     @Req() req,
     @Query('search') search: string,
     @Query('page') page?: string,
+    @Query('per_page') per_page?: string,
   ): Promise<{ data: FoundUser[]; meta: PaginationMeta }> {
     const selfId = req.user.id;
     if (!search) {
@@ -60,16 +61,24 @@ export class UsersController {
     if (page && isNaN(+page)) {
       throw new BadRequestException('Invalid page number');
     }
+    // check if page value is a number
+    if (per_page && isNaN(+per_page)) {
+      throw new BadRequestException('Invalid per_page number');
+    }
 
     const searchUsersDto: SearchUsersDto = {
       selfId,
       search: '',
       page: 1,
+      per_page: 10,
     };
 
-    searchUsersDto.search = search;
+    searchUsersDto.search = search.trim();
     if (page) {
       searchUsersDto.page = +page;
+    }
+    if (per_page) {
+      searchUsersDto.per_page = +per_page;
     }
 
     return this.usersService.search(searchUsersDto);

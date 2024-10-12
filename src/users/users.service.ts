@@ -21,7 +21,6 @@ import { UniquesService } from 'src/uniques/uniques.service';
 
 @Injectable()
 export class UsersService {
-  private per_page: number = 10;
   constructor(
     private databaseService: DatabaseService,
     private hasherService: HasherService,
@@ -167,6 +166,7 @@ export class UsersService {
     search,
     page,
     selfId,
+    per_page,
   }: SearchUsersDto): Promise<{ data: FoundUser[]; meta: PaginationMeta }> {
     const where = {
       AND: [
@@ -192,8 +192,8 @@ export class UsersService {
       ],
     };
     const foundUsers = await this.databaseService.user.findMany({
-      take: this.per_page,
-      skip: (page - 1) * this.per_page,
+      take: per_page,
+      skip: (page - 1) * per_page,
       orderBy: {
         createdAt: 'desc',
       },
@@ -210,8 +210,8 @@ export class UsersService {
     const meta: PaginationMeta = {
       total,
       page,
-      per_page: this.per_page,
-      next_page: total > page * this.per_page ? page + 1 : undefined,
+      per_page: per_page,
+      next_page: total > page * per_page ? page + 1 : undefined,
       prev_page: page > 1 ? page - 1 : undefined,
     };
 
