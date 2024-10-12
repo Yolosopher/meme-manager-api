@@ -87,6 +87,31 @@ export class FollowerController {
 
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
+  @Get('status/:targetId')
+  async checkFollowStatus(
+    @Req() request: any,
+    @Param('targetId') targetId: string,
+  ): Promise<{ status: boolean }> {
+    const followerId = request.user.id;
+    if (!targetId) {
+      throw new BadRequestException('Target ID is required');
+    }
+
+    // check if targetId is not number
+    if (isNaN(+targetId)) {
+      throw new BadRequestException('Invalid target ID');
+    }
+
+    const isFollowing = await this.followerService.isAlreadyFollowing(
+      followerId,
+      +targetId,
+    );
+
+    return { status: isFollowing };
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
   @Get('follow/:targetId')
   async followUser(
     @Req() request: any,
@@ -108,7 +133,7 @@ export class FollowerController {
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
-  @Get('/unfollow/:targetId')
+  @Get('unfollow/:targetId')
   async unfollowUser(
     @Req() request: any,
     @Param('targetId') targetId: string,
