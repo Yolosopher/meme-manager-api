@@ -40,10 +40,14 @@ export class MemesController {
     @Query('authorId') authorId?: string,
     @Query('page') page?: string,
     @Query('orderBy') orderBy?: keyof Meme,
+    @Query('per_page') per_page?: string,
   ): Promise<{ data: Meme[]; meta: PaginationMeta }> {
     // check if page value is a number
     if (page && isNaN(+page)) {
       throw new BadRequestException('Invalid page number');
+    }
+    if (per_page && isNaN(+per_page)) {
+      throw new BadRequestException('Invalid per_page number');
     }
     // check if authorId value is a number
     if (authorId && isNaN(+authorId)) {
@@ -55,6 +59,7 @@ export class MemesController {
     }
     const FindAllMemesDto: FindAllMemesDto = {
       page: 1,
+      per_page: 10,
       orderBy: {
         createdAt: 'desc',
       } as Record<keyof Meme, OrderByDir>,
@@ -62,6 +67,9 @@ export class MemesController {
 
     if (page) {
       FindAllMemesDto.page = +page;
+    }
+    if (per_page) {
+      FindAllMemesDto.per_page = +per_page;
     }
     if (authorId) {
       FindAllMemesDto.authorId = +authorId;

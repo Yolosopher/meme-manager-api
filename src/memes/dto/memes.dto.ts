@@ -53,6 +53,7 @@ export type OrderByDir = 'asc' | 'desc';
 
 export class FindAllMemesDto {
   page: number;
+  per_page: number;
   orderBy?: Record<keyof Meme, OrderByDir>;
   authorId?: number;
 }

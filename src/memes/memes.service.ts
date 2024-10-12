@@ -20,7 +20,6 @@ import { PaginationMeta } from 'src/common/interfaces';
 
 @Injectable()
 export class MemesService {
-  private per_page: number = 10;
   constructor(
     private databaseService: DatabaseService,
     private imageService: ImageService,
@@ -95,15 +94,20 @@ export class MemesService {
     return result;
   }
 
-  public async findAll({ orderBy, page, authorId }: FindAllMemesDto): Promise<{
+  public async findAll({
+    orderBy,
+    page,
+    authorId,
+    per_page,
+  }: FindAllMemesDto): Promise<{
     data: IMeme[];
     meta: PaginationMeta;
   }> {
     const where = authorId ? { authorId } : undefined;
 
     const result = await this.databaseService.meme.findMany({
-      take: this.per_page,
-      skip: (page - 1) * this.per_page,
+      take: per_page,
+      skip: (page - 1) * per_page,
       include: {
         author: {
           select: {
@@ -133,8 +137,8 @@ export class MemesService {
       meta: {
         total,
         page,
-        per_page: this.per_page,
-        next_page: total > page * this.per_page ? page + 1 : undefined,
+        per_page: per_page,
+        next_page: total > page * per_page ? page + 1 : undefined,
         prev_page: page > 1 ? page - 1 : undefined,
       },
       data: memesWithSignedUrls,
