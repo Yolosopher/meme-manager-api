@@ -206,11 +206,6 @@ export class UsersService {
       },
     });
 
-    // check if empty array and throw not found exception
-    if (foundUsers.length < 1) {
-      throw new NotFoundException('No users found');
-    }
-
     const total = await this.databaseService.user.count({ where });
     const meta: PaginationMeta = {
       total,
