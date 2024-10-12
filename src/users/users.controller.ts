@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Query,
   Req,
   UseGuards,
@@ -18,11 +19,23 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @HttpCode(HttpStatus.OK)
-  @Get('detailed')
+  @Get('detailed/:targetId?')
   @UseGuards(AuthGuard)
-  async getDetailed(@Req() req): Promise<DetailedSelf> {
+  async getDetailed(
+    @Req() req,
+    @Param('targetId') targetId?: string,
+  ): Promise<DetailedSelf> {
     const userId = req.user.id;
-    return await this.usersService.getDetailedSelf(userId);
+    if (!targetId) {
+      return await this.usersService.getDetailed(userId);
+    }
+
+    // check if targetId is not number
+    if (isNaN(+targetId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+
+    return await this.usersService.getDetailed(+targetId);
   }
 
   @HttpCode(HttpStatus.OK)

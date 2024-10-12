@@ -99,7 +99,7 @@ export class UsersService {
     });
   }
 
-  async getDetailedSelf(id: number): Promise<DetailedSelf> {
+  async getDetailed(id: number): Promise<DetailedSelf> {
     const user = await this.databaseService.user.findUnique({
       where: {
         id,
