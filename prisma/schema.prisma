@@ -54,14 +54,12 @@ model Notification {
 
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  @@unique([userId, fromUserId, type])
 }
 
 model Follows {
-  followedBy   User @relation("followedBy", fields: [followedById], references: [id])
+  followedBy   User @relation("followedBy", fields: [followedById], references: [id], onDelete: Cascade, onUpdate: Cascade)
   followedById Int
-  following    User @relation("following", fields: [followingId], references: [id])
+  following    User @relation("following", fields: [followingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   followingId  Int
 
   @@id([followingId, followedById])
