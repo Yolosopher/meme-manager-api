@@ -121,10 +121,6 @@ export class MemesService {
       where,
     });
 
-    if (result.length === 0) {
-      throw new NotFoundException('No memes found');
-    }
-
     const memesWithSignedUrls: IMeme[] = [];
 
     for (const meme of result) {
