@@ -104,42 +104,18 @@ export class NotificationService {
         console.log('User is not online');
         return;
       }
-
-      if (memeId) {
-        const meme = await this.databaseService.meme.findUnique({
-          where: {
-            id: memeId,
-          },
-          select: {
-            imageName: true,
-          },
-        });
-        if (!meme) {
-          this.sendNewNotificationToUser(createdNotification, server);
-        } else {
-          const imageUrl = await this.imageService.getSignedUrl(meme.imageName);
-          this.sendNewNotificationToUser(
-            {
-              ...createdNotification,
-              memeImageUrl: imageUrl,
-            },
-            server,
-          );
-        }
-      } else {
-        this.sendNewNotificationToUser(createdNotification, server);
-      }
+      // tell the user to fetch the new notifications
+      this.sendNewNotificationToUser(createdNotification.userId, server);
     } catch (error) {
       console.log(error);
       throw new ConflictException('Notification already exists');
     }
   }
 
-  public async deleteNotification({
-    fromUserId,
-    type,
-    userId,
-  }: NotificationDeleteDto): Promise<true> {
+  public async deleteNotification(
+    { fromUserId, type, userId }: NotificationDeleteDto,
+    server: Server,
+  ): Promise<true> {
     const notification = await this.databaseService.notification.findFirst({
       where: {
         userId,
@@ -155,6 +131,15 @@ export class NotificationService {
         id: notification.id,
       },
     });
+
+    // Check if the user is online
+    if (!this.isUserOnline(server, userId)) {
+      console.log('User is not online');
+      return;
+    }
+    // tell the user to fetch the new notifications
+    this.sendNewNotificationToUser(notification.userId, server);
+
     return true;
   }
 
@@ -178,14 +163,9 @@ export class NotificationService {
     return true;
   }
 
-  public sendNewNotificationToUser(
-    notification: INotification,
-    server: Server,
-  ) {
-    console.log('emmiting new notification');
-    server
-      .to(getUserRoomName(notification.userId))
-      .emit('new_notification', notification);
+  public sendNewNotificationToUser(clientId: number, server: Server) {
+    // this will tell the client to fetch the new notifications
+    server.to(getUserRoomName(clientId)).emit('new_notification');
   }
 
   public isUserOnline(server: Server, userId: number): boolean {

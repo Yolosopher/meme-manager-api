@@ -99,11 +99,15 @@ export class FollowerService {
     }
 
     // Delete the notification for the target user
-    await this.notificationService.deleteNotification({
-      fromUserId: followerId,
-      type: NotificationType.FOLLOW,
-      userId: targetId,
-    });
+    const socketIoServer = this.notificationGateway.server;
+    await this.notificationService.deleteNotification(
+      {
+        fromUserId: followerId,
+        type: NotificationType.FOLLOW,
+        userId: targetId,
+      },
+      socketIoServer,
+    );
 
     return true;
   }

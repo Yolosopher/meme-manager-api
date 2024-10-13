@@ -99,6 +99,7 @@ export class LikeService {
     if (meme.authorId === userId) {
       return;
     }
+
     // create notification
     const socketIoServer = this.notificationGateway.server;
 
@@ -132,11 +133,15 @@ export class LikeService {
     }
 
     // delete notification
-    await this.notificationService.deleteNotification({
-      userId: meme.authorId,
-      fromUserId: userId,
-      type: NotificationType.LIKE,
-    });
+    const socketIoServer = this.notificationGateway.server;
+    await this.notificationService.deleteNotification(
+      {
+        userId: meme.authorId,
+        fromUserId: userId,
+        type: NotificationType.LIKE,
+      },
+      socketIoServer,
+    );
   }
 
   public async findMemeLikers({ memeId, page }: FindMemeLikersDto): Promise<{
