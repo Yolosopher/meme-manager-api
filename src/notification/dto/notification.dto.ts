@@ -27,6 +27,10 @@ export class NotificationDeleteDto {
   type: NotificationType;
 }
 
+export class NotificationReadDto {
+  @IsNumber()
+  notificationId: number;
+}
 export interface INotification extends Notification {
   fromUser: {
     id: number;

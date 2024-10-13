@@ -17,6 +17,7 @@ import { Server, Socket } from 'socket.io';
 import { ISocketMessage } from 'src/common/interfaces';
 import { SignInData } from 'src/users/dto/user.dto';
 import { getUserRoomName } from 'src/common/helpers';
+import { NotificationReadDto } from './dto/notification.dto';
 
 @WebSocketGateway()
 export class NotificationGateway implements OnGatewayConnection, OnGatewayInit {
@@ -97,5 +98,16 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayInit {
       user.id,
     );
     client.emit('notifications', notifications);
+  }
+
+  @UseGuards(AuthGuard)
+  @SubscribeMessage('mark_as_read')
+  async markAsRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { user, data }: ISocketMessage<NotificationReadDto>,
+  ): Promise<void> {
+    const notificationId = data.notificationId;
+
+    await this.notificationService.markAsRead(notificationId);
   }
 }
