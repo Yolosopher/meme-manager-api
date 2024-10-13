@@ -101,7 +101,6 @@ export class NotificationService {
 
       // Check if the user is online
       if (!this.isUserOnline(server, userId)) {
-        console.log('User is not online');
         return;
       }
       // tell the user to fetch the new notifications
@@ -134,7 +133,6 @@ export class NotificationService {
 
     // Check if the user is online
     if (!this.isUserOnline(server, userId)) {
-      console.log('User is not online');
       return;
     }
     // tell the user to fetch the new notifications

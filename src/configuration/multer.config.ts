@@ -11,8 +11,6 @@ export const multerOptions: MulterOptions = {
       cb(null, IMAGE_TEMP_FOLDER);
     },
     filename(_, file, cb) {
-      console.log('file');
-      console.log(file);
       const uniqueSuffix = uuid();
       const fileExtension = file.originalname.split('.').pop();
       const finalFileName = `${uniqueSuffix}.${fileExtension}`;
@@ -23,8 +21,6 @@ export const multerOptions: MulterOptions = {
     fileSize: Number(process.env.MAX_FILE_SIZE!),
   },
   fileFilter(_, file, callback) {
-    console.log('file');
-    console.log(file);
     if (!file.mimetype.includes('image')) {
       return callback(
         new BadRequestException('Only image files are allowed!'),
