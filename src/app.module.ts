@@ -2,9 +2,6 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
-import { CloggerModule } from './clogger/clogger.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TokenModule } from './token/token.module';
@@ -29,25 +26,12 @@ console.log('ENV:', ENV);
       isGlobal: true,
       envFilePath: !ENV ? '.env' : `.${ENV}.env`,
     }),
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000,
-        limit: 10,
-      },
-      {
-        name: 'long',
-        ttl: 60000,
-        limit: 100,
-      },
-    ]),
     JwtModule.register({
       secret: JWT_SECRET,
       signOptions: { expiresIn: JWT_EXPIRATION_TIME },
       global: true,
     }),
     DatabaseModule,
-    CloggerModule,
     AuthModule,
     TokenModule,
     MemesModule,
@@ -59,14 +43,7 @@ console.log('ENV:', ENV);
     NotificationModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-    UniquesService,
-  ],
+  providers: [AppService, UniquesService],
   exports: [],
 })
 export class AppModule {}
