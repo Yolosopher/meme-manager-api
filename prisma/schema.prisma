@@ -26,8 +26,8 @@ model User {
   likes     Like[]
 
   // Following and Followers
-  followedBy Follows[] @relation("followedBy")
-  following  Follows[] @relation("following")
+  followedBy Follows[] @relation("following")
+  following  Follows[] @relation("followedBy")
 
   // Notifications
   notifications Notification[]

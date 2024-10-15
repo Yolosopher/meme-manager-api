@@ -23,6 +23,9 @@ export class CreateUserDto {
 
 export class UpdateNameDto {
   @IsString()
+  @MinLength(5, {
+    message: 'Name is too short (minimum 5 characters)',
+  })
   name: string;
 }
 
