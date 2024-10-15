@@ -12,7 +12,9 @@ export class CreateUserDto {
   name: string;
 
   @IsString()
-  @MinLength(6)
+  @MinLength(6, {
+    message: 'Password is too short (minimum 6 characters)',
+  })
   @Matches(/^(?=.*[0-9])/, {
     message: 'Password must contain at least one number',
   })
