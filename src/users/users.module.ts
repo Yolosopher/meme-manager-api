@@ -8,6 +8,7 @@ import { UsersController } from './users.controller';
 import { MemesModule } from 'src/memes/memes.module';
 import { ImageModule } from 'src/image/image.module';
 import { UniquesModule } from 'src/uniques/uniques.module';
+import { PushNotificationModule } from 'src/push-notification/push-notification.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UniquesModule } from 'src/uniques/uniques.module';
     TokenModule,
     ImageModule,
     UniquesModule,
+    PushNotificationModule,
   ],
   providers: [UsersService],
   exports: [UsersService],

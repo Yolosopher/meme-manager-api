@@ -10,6 +10,7 @@ import { TokenModule } from 'src/token/token.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ConfigModule } from '@nestjs/config';
+import { PushNotificationModule } from 'src/push-notification/push-notification.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ConfigModule } from '@nestjs/config';
     MemesModule,
     ImageModule,
     AuthModule,
+    PushNotificationModule,
   ],
   providers: [NotificationService, NotificationGateway, AuthGuard],
   exports: [NotificationService, NotificationGateway],

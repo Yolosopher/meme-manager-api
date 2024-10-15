@@ -18,6 +18,7 @@ import { PaginationMeta } from 'src/common/interfaces';
 import { MemesService } from 'src/memes/memes.service';
 import { ImageService } from 'src/image/image.service';
 import { UniquesService } from 'src/uniques/uniques.service';
+import { PushNotificationService } from 'src/push-notification/push-notification.service';
 
 @Injectable()
 export class UsersService {
@@ -27,6 +28,7 @@ export class UsersService {
     private memesService: MemesService,
     private imageService: ImageService,
     private uniquesService: UniquesService,
+    private pushNotificationService: PushNotificationService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -153,6 +155,9 @@ export class UsersService {
     } catch (error) {
       // do nothing
     }
+
+    // delete indie push notification subscription
+    this.pushNotificationService.deleteSingleIndie(id);
 
     const result = await this.databaseService.user.delete({
       where: {

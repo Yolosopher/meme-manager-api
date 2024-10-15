@@ -108,6 +108,6 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayInit {
   ): Promise<void> {
     const notificationId = data.notificationId;
 
-    await this.notificationService.markAsRead(notificationId);
+    await this.notificationService.markAsRead(notificationId, this.server);
   }
 }

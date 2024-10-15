@@ -13,12 +13,15 @@ import {
 import { ImageService } from 'src/image/image.service';
 import { Server } from 'socket.io';
 import { getUserRoomName } from 'src/common/helpers';
+import { PushNotificationService } from 'src/push-notification/push-notification.service';
+import { NotificationType } from '@prisma/client';
 
 @Injectable()
 export class NotificationService {
   constructor(
     private databaseService: DatabaseService,
     private imageService: ImageService,
+    private pushNotificationService: PushNotificationService,
   ) {}
 
   public async getMyNotifications(userId: number): Promise<INotification[]> {
@@ -101,10 +104,29 @@ export class NotificationService {
 
       // Check if the user is online
       if (!this.isUserOnline(server, userId)) {
-        return;
+        this.pushNotificationService
+          .checkIfPushTokenExists(userId)
+          .then((exists) => {
+            if (exists) {
+              this.pushNotificationService.sendIndiePushNotification({
+                userId,
+                title: createdNotification.fromUser.name.toUpperCase(),
+                message:
+                  type === NotificationType.LIKE
+                    ? 'liked your meme'
+                    : 'followed you',
+                data: {
+                  notificationId: createdNotification.id,
+                  fromUserId,
+                  memeId: memeId ? memeId : '',
+                },
+              });
+            }
+          });
+      } else {
+        // tell the user to fetch the new notifications
+        this.sendNewNotificationToUser(createdNotification.userId, server);
       }
-      // tell the user to fetch the new notifications
-      this.sendNewNotificationToUser(createdNotification.userId, server);
     } catch (error) {
       console.log(error);
       throw new ConflictException('Notification already exists');
@@ -141,7 +163,10 @@ export class NotificationService {
     return true;
   }
 
-  public async markAsRead(notificationId: number): Promise<true> {
+  public async markAsRead(
+    notificationId: number,
+    server: Server,
+  ): Promise<true> {
     const notification = await this.databaseService.notification.findUnique({
       where: {
         id: notificationId,
@@ -158,6 +183,7 @@ export class NotificationService {
         read: true,
       },
     });
+    this.sendNewNotificationToUser(notification.userId, server);
     return true;
   }
 
