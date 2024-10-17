@@ -14,7 +14,7 @@ import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Injectable()
 export class LikeService {
-  private per_page: number = 20;
+  private per_page: number = 10;
   constructor(
     private databaseService: DatabaseService,
     private memesService: MemesService,
@@ -173,10 +173,6 @@ export class LikeService {
         },
       },
     });
-
-    if (result.length === 0) {
-      throw new BadRequestException('No likes found');
-    }
 
     const total = await this.databaseService.like.count({
       where,

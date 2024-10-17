@@ -37,11 +37,14 @@ export class MemesController {
   @UseGuards(AuthGuard)
   @Get()
   findAll(
+    @Req() request,
     @Query('authorId') authorId?: string,
     @Query('page') page?: string,
     @Query('orderBy') orderBy?: keyof Meme,
     @Query('per_page') per_page?: string,
+    @Query('populate') populate?: string,
   ): Promise<{ data: Meme[]; meta: PaginationMeta }> {
+    const fetcherId = request.user.id;
     // check if page value is a number
     if (page && isNaN(+page)) {
       throw new BadRequestException('Invalid page number');
@@ -81,7 +84,11 @@ export class MemesController {
       } as Record<keyof Meme, OrderByDir>;
     }
 
-    return this.memesService.findAll(FindAllMemesDto);
+    return this.memesService.findAll(
+      FindAllMemesDto,
+      populate && populate === 'true',
+      fetcherId,
+    );
   }
 
   @HttpCode(HttpStatus.OK)

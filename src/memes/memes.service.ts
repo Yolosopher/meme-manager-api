@@ -94,13 +94,12 @@ export class MemesService {
     return result;
   }
 
-  public async findAll({
-    orderBy,
-    page,
-    authorId,
-    per_page,
-  }: FindAllMemesDto): Promise<{
-    data: IMeme[];
+  public async findAll(
+    { orderBy, page, authorId, per_page }: FindAllMemesDto,
+    populateLikers: boolean = false,
+    fetcherId: number,
+  ): Promise<{
+    data: IMeme[] | IMemeWithLikes[];
     meta: PaginationMeta;
   }> {
     const where = authorId ? { authorId } : undefined;
@@ -116,6 +115,29 @@ export class MemesService {
             name: true,
           },
         },
+        likes: !populateLikers
+          ? false
+          : {
+              where: {
+                userId: {
+                  not: fetcherId,
+                },
+              },
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                  },
+                },
+                createdAt: true,
+              },
+              take: 2,
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
       },
       orderBy: orderBy
         ? orderBy
@@ -125,11 +147,11 @@ export class MemesService {
       where,
     });
 
-    const memesWithSignedUrls: IMeme[] = [];
+    const memesWithSignedUrls: IMeme[] | IMemeWithLikes[] = [];
 
     for (const meme of result) {
       const imageUrl = await this.imageService.getSignedUrl(meme.imageName);
-      memesWithSignedUrls.push({ ...meme, imageUrl });
+      memesWithSignedUrls.push({ ...(meme as any), imageUrl });
     }
 
     const total = await this.databaseService.meme.count({ where });
@@ -148,11 +170,19 @@ export class MemesService {
   public async findOne<T extends boolean>(
     memeId: number,
     populateLikes: T,
+    fetcherId?: number,
   ): Promise<T extends true ? IMemeWithLikes : IMeme> {
     let include = undefined;
     if (populateLikes) {
       include = {
         likes: {
+          where: fetcherId
+            ? {
+                userId: {
+                  not: fetcherId,
+                },
+              }
+            : {},
           select: {
             user: {
               select: {
@@ -163,7 +193,7 @@ export class MemesService {
             },
             createdAt: true,
           },
-          take: 5,
+          take: 2,
           orderBy: {
             createdAt: 'desc',
           },
