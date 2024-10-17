@@ -35,6 +35,9 @@ export class LoginUserDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  pushToken: string;
 }
 
 export type SignInData = {

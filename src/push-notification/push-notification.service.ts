@@ -1,94 +1,85 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { getUserRoomName } from 'src/common/helpers';
-import axios from 'axios';
+import { Expo } from 'expo-server-sdk';
+import { TokenService } from 'src/token/token.service';
 
 @Injectable()
 export class PushNotificationService {
-  private appId: string;
-  private appToken: string;
-  private appURL: string;
-  constructor(private configService: ConfigService) {
-    this.appId = this.configService.get('PUSH_NOTIFICATIONS_APP_ID');
-    this.appToken = this.configService.get('PUSH_NOTIFICATIONS_APP_TOKEN');
-    this.appURL = this.configService.get('PUSH_NOTIFICATIONS_APP_URL');
-  }
-  private urlSingleIndie(userId: number) {
-    const indieId = getUserRoomName(userId);
-    return `${this.appURL}/expo/indie/sub/${this.appId}/${this.appToken}/${indieId}`;
-  }
-  private urlALLIndies() {
-    return `${this.appURL}/expo/indie/subs/${this.appId}/${this.appToken}`;
-  }
-
-  private urlDeleteSingleIndie(userId: number) {
-    const indieId = getUserRoomName(userId);
-    return `${this.appURL}/app/indie/sub/${this.appId}/${this.appToken}/${indieId}`;
-  }
-
-  private urlIndieSend() {
-    return `${this.appURL}/indie/notification`;
-  }
-
-  public async deleteSingleIndie(userId: number) {
-    const url = this.urlDeleteSingleIndie(userId);
-    axios.delete(url).catch((error) => {
-      console.log(`Error deleting single indie: ${error}`);
+  private expo: Expo;
+  constructor(
+    private configService: ConfigService,
+    private tokenService: TokenService,
+  ) {
+    this.expo = new Expo({
+      accessToken: this.configService.get('PUSH_NOTIFICATIONS_APP_TOKEN'),
     });
   }
+  // private urlSingleIndie(userId: number) {
+  //   const indieId = getUserRoomName(userId);
+  //   return `${this.appURL}/expo/indie/sub/${this.appId}/${this.appToken}/${indieId}`;
+  // }
+  // private urlALLIndies() {
+  //   return `${this.appURL}/expo/indie/subs/${this.appId}/${this.appToken}`;
+  // }
 
-  public async checkIfPushTokenExists(userId: number): Promise<boolean> {
-    const url = this.urlSingleIndie(userId);
+  // private urlDeleteSingleIndie(userId: number) {
+  //   const indieId = getUserRoomName(userId);
+  //   return `${this.appURL}/app/indie/sub/${this.appId}/${this.appToken}/${indieId}`;
+  // }
+
+  // private urlIndieSend() {
+  //   return `${this.appURL}/indie/notification`;
+  // }
+
+  public async checkIfPushTokenExists(
+    userId: number,
+  ): Promise<{ success: false } | { success: true; pushTokens: string[] }> {
     try {
-      const response = await axios.get(url);
-      const subIdObject = response.data[0];
-      if (!subIdObject) {
-        return false;
+      const result = await this.tokenService.fetchPushTokens(userId);
+      if (result.length === 0) {
+        return {
+          success: false,
+        };
       }
-      const {
-        expo_ios_token,
-        ios_apn_token,
-        expo_android_token,
-        android_fcm_token,
-      } = subIdObject;
-      if (
-        !expo_ios_token &&
-        !ios_apn_token &&
-        !expo_android_token?.length &&
-        !android_fcm_token?.length
-      ) {
-        return false;
-      }
-      return true;
+      return {
+        success: true,
+        pushTokens: result,
+      };
     } catch (error) {
-      return false;
+      return {
+        success: false,
+      };
     }
   }
 
-  public async sendIndiePushNotification({
-    message,
-    title,
-    userId,
-    data,
-  }: {
-    userId: number;
-    title: string;
-    message: string;
-    data?: Record<string, any>;
-  }) {
-    const indieId = getUserRoomName(userId);
-    const payload: any = {
-      subID: indieId,
-      appId: this.appId,
-      appToken: this.appToken,
-      title,
+  public async sendIndiePushNotification(
+    pushTokens: string[],
+    {
       message,
-    };
-    if (data) {
-      payload.pushData = JSON.stringify(data);
-    }
-    axios.post(this.urlIndieSend(), payload).catch((error) => {
-      console.log(`Error sending indie push notification: ${error}`);
+      title,
+      data,
+    }: {
+      title: string;
+      message: string;
+      data?: Record<string, any>;
+    },
+  ): Promise<void> {
+    const chunks = this.expo.chunkPushNotifications(
+      pushTokens.map((pToken) => ({
+        to: pToken,
+        sound: 'default',
+        body: message,
+        title,
+        data,
+      })),
+    );
+
+    chunks.forEach(async (chunk) => {
+      try {
+        await this.expo.sendPushNotificationsAsync(chunk);
+      } catch (error) {
+        console.error(error);
+      }
     });
   }
 }

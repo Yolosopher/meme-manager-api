@@ -12,11 +12,19 @@ export class AuthService {
     private tokenService: TokenService,
   ) {}
 
-  public async authenticate(input: LoginUserDto): Promise<AuthResult> {
-    const user = await this.validateUser(input);
+  public async authenticate({
+    email,
+    password,
+    pushToken,
+  }: LoginUserDto): Promise<AuthResult> {
+    const user = await this.validateUser({ email, password, pushToken });
 
     const authResult = await this.signIn(user);
-    await this.tokenService.saveToken(authResult.accessToken, user.id);
+    await this.tokenService.saveToken({
+      pushToken,
+      token: authResult.accessToken,
+      userId: authResult.id,
+    });
     return authResult;
   }
 
@@ -61,7 +69,11 @@ export class AuthService {
       id: user.id,
       role: user.role,
     });
-    await this.tokenService.saveToken(authResult.accessToken, authResult.id);
+    await this.tokenService.saveToken({
+      pushToken: foundToken.pushToken,
+      token: authResult.accessToken,
+      userId: authResult.id,
+    });
 
     // delete old token
     await this.tokenService.deleteToken(token);

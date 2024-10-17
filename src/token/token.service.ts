@@ -6,16 +6,25 @@ import { DatabaseService } from 'src/database/database.service';
 export class TokenService {
   constructor(private databaseService: DatabaseService) {}
 
-  async saveToken(token: string, userId: number): Promise<Token> {
+  public async saveToken({
+    pushToken,
+    token,
+    userId,
+  }: {
+    token: string;
+    userId: number;
+    pushToken: string;
+  }): Promise<Token> {
     return await this.databaseService.token.create({
       data: {
         token,
         userId,
+        pushToken,
       },
     });
   }
 
-  async findToken(token: string): Promise<Token | null> {
+  public async findToken(token: string): Promise<Token | null> {
     return await this.databaseService.token.findFirst({
       where: {
         token,
@@ -23,11 +32,23 @@ export class TokenService {
     });
   }
 
-  async deleteToken(token: string): Promise<Token | null> {
+  public async deleteToken(token: string): Promise<Token | null> {
     return await this.databaseService.token.delete({
       where: {
         token,
       },
     });
+  }
+
+  public async fetchPushTokens(userId: number): Promise<string[]> {
+    const tokens = await this.databaseService.token.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        pushToken: true,
+      },
+    });
+    return tokens.map((token) => token.pushToken);
   }
 }

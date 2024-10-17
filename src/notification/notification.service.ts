@@ -106,21 +106,25 @@ export class NotificationService {
       if (!this.isUserOnline(server, userId)) {
         this.pushNotificationService
           .checkIfPushTokenExists(userId)
-          .then((exists) => {
-            if (exists) {
-              this.pushNotificationService.sendIndiePushNotification({
-                userId,
-                title: createdNotification.fromUser.name.toUpperCase(),
-                message:
-                  type === NotificationType.LIKE
-                    ? 'liked your meme'
-                    : 'followed you',
-                data: {
-                  notificationId: createdNotification.id,
-                  fromUserId,
-                  memeId: memeId ? memeId : '',
+          .then((resp) => {
+            if (resp.success) {
+              const pushTokens = resp.pushTokens;
+
+              this.pushNotificationService.sendIndiePushNotification(
+                pushTokens,
+                {
+                  title: createdNotification.fromUser.name.toUpperCase(),
+                  message:
+                    type === NotificationType.LIKE
+                      ? 'liked your meme'
+                      : 'followed you',
+                  data: {
+                    notificationId: createdNotification.id,
+                    fromUserId,
+                    memeId: memeId ? memeId : '',
+                  },
                 },
-              });
+              );
             }
           });
       } else {

@@ -156,9 +156,6 @@ export class UsersService {
       // do nothing
     }
 
-    // delete indie push notification subscription
-    this.pushNotificationService.deleteSingleIndie(id);
-
     const result = await this.databaseService.user.delete({
       where: {
         id,
