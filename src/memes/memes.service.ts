@@ -172,31 +172,37 @@ export class MemesService {
     populateLikes: T,
     fetcherId?: number,
   ): Promise<T extends true ? IMemeWithLikes : IMeme> {
-    let include = undefined;
+    let include: any = {
+      author: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+    };
     if (populateLikes) {
-      include = {
-        likes: {
-          where: fetcherId
-            ? {
-                userId: {
-                  not: fetcherId,
-                },
-              }
-            : {},
-          select: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                name: true,
+      include.likes = {
+        where: fetcherId
+          ? {
+              userId: {
+                not: fetcherId,
               },
+            }
+          : {},
+        select: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
             },
-            createdAt: true,
           },
-          take: 2,
-          orderBy: {
-            createdAt: 'desc',
-          },
+          createdAt: true,
+        },
+        take: 2,
+        orderBy: {
+          createdAt: 'desc',
         },
       };
     }
@@ -260,6 +266,13 @@ export class MemesService {
     const meme = await this.databaseService.meme.delete({
       where: {
         id: memeId,
+      },
+    });
+
+    // delete notifications for this meme
+    await this.databaseService.notification.deleteMany({
+      where: {
+        memeId,
       },
     });
 
