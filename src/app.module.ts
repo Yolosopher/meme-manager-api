@@ -15,6 +15,7 @@ import { UniquesModule } from './uniques/uniques.module';
 import { NotificationModule } from './notification/notification.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PushNotificationModule } from './push-notification/push-notification.module';
+import { AdminModule } from './admin/admin.module';
 
 const ENV = process.env.NODE_ENV || 'development';
 const JWT_EXPIRATION_TIME = process.env.JWT_EXPIRATION_TIME!;
@@ -43,6 +44,7 @@ console.log('ENV:', ENV);
     UniquesModule,
     NotificationModule,
     PushNotificationModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, UniquesService],

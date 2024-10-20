@@ -54,7 +54,7 @@ export interface FoundUser
 
 export interface SearchUsersDto {
   selfId: number;
-  search: string;
+  search?: string;
   page: number;
   per_page: number;
 }

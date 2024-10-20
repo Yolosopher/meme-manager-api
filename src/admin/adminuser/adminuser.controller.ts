@@ -1,52 +1,35 @@
 import {
   BadRequestException,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { DetailedSelf, FoundUser, SearchUsersDto } from './dto/user.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationMeta } from 'src/common/interfaces';
+import { FoundUser, SearchUsersDto } from 'src/users/dto/user.dto';
+import { UsersService } from 'src/users/users.service';
 
-@Controller('users')
-export class UsersController {
+@Controller('adminuser')
+export class AdminuserController {
   constructor(private usersService: UsersService) {}
 
   @HttpCode(HttpStatus.OK)
-  @Get('detailed/:targetId?')
-  @UseGuards(AuthGuard)
-  async getDetailed(
-    @Req() req,
-    @Param('targetId') targetId?: string,
-  ): Promise<DetailedSelf> {
-    const userId = req.user.id;
-    if (!targetId) {
-      return await this.usersService.getDetailed(userId);
-    }
-
-    // check if targetId is not number
-    if (isNaN(+targetId)) {
-      throw new BadRequestException('Invalid user ID');
-    }
-
-    return await this.usersService.getDetailed(+targetId);
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @Get()
-  @UseGuards(AuthGuard)
-  async search(
+  @Get('/users')
+  async getUsers(
     @Req() req,
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('per_page') per_page?: string,
-  ): Promise<{ data: FoundUser[]; meta: PaginationMeta }> {
+  ): Promise<{
+    data: FoundUser[];
+    meta: PaginationMeta;
+  }> {
     const selfId = req.user.id;
 
     if (search && search.length < 3) {
@@ -82,5 +65,21 @@ export class UsersController {
     }
 
     return this.usersService.search(searchUsersDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('/:deleteUserId')
+  async getUser(@Param('deleteUserId') deleteUserId: string): Promise<boolean> {
+    if (!deleteUserId || isNaN(+deleteUserId)) {
+      throw new BadRequestException('Invali ');
+    }
+    const foundUser = await this.usersService.findOne(+deleteUserId);
+
+    if (!foundUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.usersService.remove(+deleteUserId, foundUser.email);
+    return true;
   }
 }

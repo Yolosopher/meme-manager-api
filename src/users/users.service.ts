@@ -193,22 +193,27 @@ export class UsersService {
         },
       ],
     };
-    const foundUsers = await this.databaseService.user.findMany({
+    const payload = {
       take: per_page,
       skip: (page - 1) * per_page,
       orderBy: {
         createdAt: 'desc',
       },
-      where,
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
       },
-    });
+    };
+    if (search) {
+      payload['where'] = where;
+    }
+    const foundUsers = await this.databaseService.user.findMany();
 
-    const total = await this.databaseService.user.count({ where });
+    const total = await this.databaseService.user.count(
+      search ? { where } : null,
+    );
     const meta: PaginationMeta = {
       total,
       page,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Token } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
+import { TokenWithUser } from './dto/token.dto';
 
 @Injectable()
 export class TokenService {
@@ -50,5 +51,20 @@ export class TokenService {
       },
     });
     return tokens.map((token) => token.pushToken);
+  }
+
+  public async getAllTokens(): Promise<TokenWithUser[]> {
+    return await this.databaseService.token.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
   }
 }
