@@ -14,12 +14,12 @@ import { PaginationMeta } from 'src/common/interfaces';
 import { FoundUser, SearchUsersDto } from 'src/users/dto/user.dto';
 import { UsersService } from 'src/users/users.service';
 
-@Controller('adminuser')
+@Controller('users')
 export class AdminuserController {
   constructor(private usersService: UsersService) {}
 
   @HttpCode(HttpStatus.OK)
-  @Get('/users')
+  @Get()
   async getUsers(
     @Req() req,
     @Query('search') search?: string,
