@@ -9,7 +9,6 @@ import {
   Param,
   Query,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { PaginationMeta } from 'src/common/interfaces';
 import { FoundUser, SearchUsersDto } from 'src/users/dto/user.dto';
